@@ -2,7 +2,7 @@ import AppError from "../utils/appError";
 import { NextFunction, Request, Response } from "express";
 import { Error as MongooseError } from "mongoose";
 import { MongoServerError } from "mongodb";
-import { error } from "console";
+
 const handleCastErrorDB = (err: any) => {
   const message = `Invalid ${err.path}: ${err.value}.`;
   return new AppError(message, 400);

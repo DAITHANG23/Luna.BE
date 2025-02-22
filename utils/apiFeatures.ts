@@ -1,6 +1,6 @@
 class APIFeatures {
-  private query: any;
-  private queryString: Record<string, any>;
+  public query: any;
+  public queryString: Record<string, any>;
 
   constructor(query: any, queryString: Record<string, any>) {
     this.query = query;
@@ -34,12 +34,12 @@ class APIFeatures {
     return this;
   }
 
-  limitField() {
+  limitFields() {
     if (this.queryString.fields) {
       const fields = this.queryString.fields.split(",").join(" ");
       this.query = this.query.select(fields);
     } else {
-      this.query = this.queryString.select("-__v");
+      this.query = this.query.select("-__v");
     }
 
     return this;
@@ -56,4 +56,4 @@ class APIFeatures {
   }
 }
 
-module.exports = APIFeatures;
+export default APIFeatures;

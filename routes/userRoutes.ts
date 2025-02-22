@@ -7,7 +7,21 @@ import {
   resetPassword,
   updatePassword,
   protect,
+  restrictTo,
 } from "../controllers/authController";
+
+import {
+  getMe,
+  getUser,
+  uploadUserPhoto,
+  resizeUserPhoto,
+  updateMe,
+  deleteMe,
+  getAllUsers,
+  createUser,
+  updateUser,
+  deleteUser,
+} from "../controllers/userController";
 
 const router = express.Router();
 
@@ -23,4 +37,14 @@ router.patch("/resetPassword/:token", resetPassword);
 router.use(protect);
 
 router.patch("/updateMyPassword", updatePassword);
+router.get("/me", getMe, getUser);
+router.patch("/updateMe", uploadUserPhoto, resizeUserPhoto, updateMe);
+router.delete("/deleteMe", deleteMe);
+
+router.use(restrictTo("admin"));
+
+router.route("/").get(getAllUsers).post(createUser);
+
+router.route("/:id").get(getUser).patch(updateUser).delete(deleteUser);
+
 export default router;

@@ -8,18 +8,15 @@ import crypto from "crypto";
 
 const signToken = (id: string) => {
   const secretKey = process.env.JWT_SECRET;
-  const timeExpire = Number(process.env.JWT_COOKIE_EXPIRES_IN);
+
+  console.log("secretKey:", secretKey);
   if (!secretKey) {
     throw new Error("JWT_SECRET is not defined!");
   }
 
-  if (!timeExpire) {
-    throw new Error("JWT_COOKIE_EXPIRES_IN is not defined!");
-  }
-
-  const payload = { userId: id }; // Use the provided id instead of hardcoded "124"
+  const payload = { id }; // Use the provided id instead of hardcoded "124"
   const options: jwt.SignOptions = {
-    expiresIn: timeExpire, // Default to "1h" if not defined
+    expiresIn: "90d", // Default to "1h" if not defined
   };
 
   return jwt.sign(payload, secretKey, options);
@@ -111,16 +108,19 @@ export const protect = catchAsync(async (req, res, next) => {
       new AppError("You are not looged in! Please log in to get access.", 401)
     );
   }
-
+  console.log("token:", token);
   const verifyToken = (token: string, secret: string): Promise<any> => {
     return new Promise((resolve, reject) => {
       jwt.verify(token, secret, (err, decoded) => {
+        console.log("err:", err);
+        console.log("decoded:", decoded);
         if (err) reject(err);
         else resolve(decoded);
       });
     });
   };
   const decoded = await verifyToken(token, process.env.JWT_SECRET as string);
+  console.log("decoded:", decoded);
 
   const currentUser = await User.findById(decoded.id);
 
