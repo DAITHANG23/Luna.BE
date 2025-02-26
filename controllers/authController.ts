@@ -60,7 +60,7 @@ export const signup = catchAsync(async (req, res, next) => {
     password: req.body.password,
     passwordConfirm: req.body.passwordConfirm,
     gender: req.body.gender,
-    birthOfDate: req.body.birthOfDate,
+    dateOfBirth: req.body.dateOfBirth,
     address: req.body.address,
   });
 
