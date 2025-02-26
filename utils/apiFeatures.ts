@@ -1,5 +1,5 @@
 class APIFeatures {
-  private query: any;
+  public query: any;
   private queryString: Record<string, any>;
 
   constructor(query: any, queryString: Record<string, any>) {
@@ -56,4 +56,4 @@ class APIFeatures {
   }
 }
 
-module.exports = APIFeatures;
+export default APIFeatures;

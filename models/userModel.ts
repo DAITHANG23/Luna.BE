@@ -50,7 +50,7 @@ const userSchema = new mongoose.Schema<IUser>({
       "Password must have at least 8 characters, one uppercase, one lowercase, one number, and one special character.",
     ],
   },
-  birthOfDate: {
+  dateOfBirth: {
     type: String,
     require: [true, "Please provide birth of date."],
   },
@@ -113,7 +113,7 @@ userSchema.pre("save", function (next) {
 userSchema.pre("save", function (next) {
   const minAgeDate = dayjs().subtract(13, "year");
 
-  if (!dayjs(this.birthOfDate).isBefore(minAgeDate)) {
+  if (!dayjs(this.dateOfBirth).isBefore(minAgeDate)) {
     return next(new Error("User must be at least 13 years old!"));
   }
 
