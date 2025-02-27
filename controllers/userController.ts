@@ -76,6 +76,7 @@ const filterObj = <T extends Record<string, any>>(
 
 export const getMe = (req: Request, res: Response, next: NextFunction) => {
   const userId = req.user?.id || "";
+  console.log("userId:", userId);
   req.params.id = userId;
   next();
 };
@@ -93,7 +94,13 @@ export const updateMe = catchAsync(
     }
 
     // 2) Filtered out unwanted fields names that are not allowed to be updated
-    const filteredBody = filterObj(req.body, "name", "email");
+    const filteredBody = filterObj(
+      req.body,
+      "name",
+      "email",
+      "address",
+      "numberPhone"
+    );
     if (req.file) filteredBody.photo = req.file.filename;
 
     // 3) Update user document
