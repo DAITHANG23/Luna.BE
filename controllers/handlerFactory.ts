@@ -83,6 +83,7 @@ export const getAll = <T extends Document>(Model: Model<T>) =>
       .pagination();
     // const doc = await features.query.explain();
     const doc = await features.query;
+    console.log(doc);
 
     // SEND RESPONSE
     res.status(200).json({

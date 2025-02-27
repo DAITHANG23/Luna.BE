@@ -112,13 +112,28 @@ export const login = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, req, res);
 });
 
-export const logout = (req: Request, res: Response) => {
-  res.cookie("jwt", "loggedout", {
-    expires: new Date(Date.now() + 10 * 1000),
-    httpOnly: true,
-  });
-  res.status(200).json({ status: "success" });
-};
+export const logout = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const refreshToken = req.cookies?.jwt;
+
+    if (!refreshToken)
+      return next(new AppError("No refresh token provider", 400));
+
+    const user = await User.findOne({ refreshToken });
+
+    if (user) {
+      user.refreshToken = undefined;
+      await user.save({ validateBeforeSave: false });
+    }
+
+    res.clearCookie("jwt", {
+      httpOnly: true,
+      secure: req.secure || req.headers["x-forwarded-proto"] === "https",
+      sameSite: "strict",
+    });
+    res.status(200).json({ status: "success", message: "Logged out" });
+  }
+);
 
 export const protect = catchAsync(async (req, res, next) => {
   let token;
@@ -127,8 +142,6 @@ export const protect = catchAsync(async (req, res, next) => {
     req.headers.authorization.startsWith("Bearer")
   ) {
     token = req.headers.authorization.split(" ")[1];
-  } else if (req.cookies.jwt) {
-    token = req.cookies.jwt;
   }
 
   if (!token) {
@@ -139,7 +152,7 @@ export const protect = catchAsync(async (req, res, next) => {
 
   const decoded = await verifyToken(token, process.env.JWT_SECRET as string);
 
-  const currentUser = await User.findById(decoded.id);
+  const currentUser = await User.findById(decoded.userId);
 
   if (!currentUser) {
     return next(
@@ -245,7 +258,6 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
       "host"
     )}/api/v1/users/resetPassword/${resetToken}`;
 
-    console.log("resetURL:", resetURL);
     await new Email(user, resetURL).sendPasswordReset();
 
     res.status(200).json({

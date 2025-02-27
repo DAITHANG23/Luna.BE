@@ -115,11 +115,11 @@ userSchema.pre("save", function (next) {
 });
 
 userSchema.pre("save", function (next) {
-  // const minAgeDate = dayjs().subtract(13, "year");
+  const minAgeDate = dayjs().subtract(13, "year");
 
-  // if (!dayjs(this.dateOfBirth).isBefore(minAgeDate)) {
-  //   return next(new Error("User must be at least 13 years old!"));
-  // }
+  if (dayjs(this.dateOfBirth).isBefore(minAgeDate)) {
+    return next(new Error("User must be at least 13 years old!"));
+  }
 
   next();
 });
