@@ -12,6 +12,7 @@ export interface IUser extends Document {
   dateOfBirth: string;
   numberPhone: string;
   role: string;
+  refreshToken?: string;
   active: boolean;
   createdAt: Date;
   updatedAt: Date;

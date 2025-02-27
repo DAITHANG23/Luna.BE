@@ -6,46 +6,72 @@ import AppError from "../utils/appError";
 import Email from "../utils/emails";
 import crypto from "crypto";
 
-const signToken = (id: string) => {
+const verifyToken = (token: string, secret: string): Promise<any> => {
+  return new Promise((resolve, reject) => {
+    jwt.verify(token, secret, (err, decoded) => {
+      if (err) reject(err);
+      else resolve(decoded);
+    });
+  });
+};
+
+const signAccessToken = (id: string) => {
   const secretKey = process.env.JWT_SECRET;
-  const timeExpire = Number(process.env.JWT_COOKIE_EXPIRES_IN);
+
   if (!secretKey) {
     throw new Error("JWT_SECRET is not defined!");
   }
 
-  if (!timeExpire) {
-    throw new Error("JWT_COOKIE_EXPIRES_IN is not defined!");
-  }
+  const payload = { userId: id };
 
-  const payload = { userId: id }; // Use the provided id instead of hardcoded "124"
-  const options: jwt.SignOptions = {
-    expiresIn: timeExpire, // Default to "1h" if not defined
+  const optionsAccess: jwt.SignOptions = {
+    expiresIn: "15m",
   };
 
-  return jwt.sign(payload, secretKey, options);
+  return jwt.sign(payload, secretKey, optionsAccess);
 };
 
-const createSendToken = (
+const signRefreshToken = (id: string) => {
+  const secretKey = process.env.REFRESH_SECRET;
+
+  if (!secretKey) {
+    throw new Error("REFRESH_SECRET is not defined!");
+  }
+
+  const payload = { userId: id };
+
+  const optionsRefresh: jwt.SignOptions = {
+    expiresIn: "7d",
+  };
+
+  return jwt.sign(payload, secretKey, optionsRefresh);
+};
+
+const createSendToken = async (
   user: any,
   statusCode: number,
   req: Request,
   res: Response
 ) => {
-  const token = signToken(user._id);
+  const accessToken = signAccessToken(user._id);
 
-  const timeExpire = Number(process.env.JWT_COOKIE_EXPIRES_IN) || 90;
+  const refreshToken = signRefreshToken(user._id);
 
-  res.cookie("jwt", token, {
+  const timeExpire = Number(process.env.REFRESH_TOKEN_EXPIRED_IN);
+
+  res.cookie("jwt", refreshToken, {
     expires: new Date(Date.now() + timeExpire * 24 * 60 * 60 * 1000),
     httpOnly: true,
     secure: req.secure || req.header("x-forwarded-proto") === "https",
+    sameSite: "none",
   });
 
   user.password = undefined;
+  await User.findByIdAndUpdate(user._id, { refreshToken });
 
   res.status(statusCode).json({
     status: "success",
-    token,
+    accessToken,
     data: {
       user,
     },
@@ -82,7 +108,6 @@ export const login = catchAsync(async (req, res, next) => {
   if (!user || !(await user.correctPassword(password, user.password))) {
     return next(new AppError("Incorrect email or password", 401));
   }
-
   // 3) If everything ok, send token to client
   createSendToken(user, 200, req, res);
 });
@@ -112,14 +137,6 @@ export const protect = catchAsync(async (req, res, next) => {
     );
   }
 
-  const verifyToken = (token: string, secret: string): Promise<any> => {
-    return new Promise((resolve, reject) => {
-      jwt.verify(token, secret, (err, decoded) => {
-        if (err) reject(err);
-        else resolve(decoded);
-      });
-    });
-  };
   const decoded = await verifyToken(token, process.env.JWT_SECRET as string);
 
   const currentUser = await User.findById(decoded.id);
@@ -146,14 +163,7 @@ export const isLoggedIn = async (
   if (req.cookies.jwt) {
     try {
       // 1) verify token
-      const verifyToken = (token: string, secret: string): Promise<any> => {
-        return new Promise((resolve, reject) => {
-          jwt.verify(token, secret, (err, decoded) => {
-            if (err) reject(err);
-            else resolve(decoded);
-          });
-        });
-      };
+
       const decoded = await verifyToken(
         req.cookies.jwt,
         process.env.JWT_SECRET as string
@@ -193,6 +203,28 @@ export const restrictTo = (...roles: any) => {
     next();
   };
 };
+
+export const refreshToken = catchAsync(async (req, res, next) => {
+  const refreshToken = req.cookies.jwt;
+  if (!refreshToken) return next(new AppError("Refresh token missing!", 401));
+
+  const secretKey = process.env.REFRESH_SECRET;
+  if (!secretKey)
+    return next(new AppError("Server error: Missing REFRESH_SECRET", 500));
+
+  const decoded = await verifyToken(refreshToken, secretKey);
+
+  const user = await User.findById(decoded.userId).select("+refreshToken");
+
+  if (!user || user.refreshToken !== refreshToken) {
+    return next(new AppError("Invalid refresh token!", 403));
+  }
+
+  // Cấp access token mới
+  const accessToken = signAccessToken(user._id as string);
+
+  return res.json({ accessToken });
+});
 
 export const forgotPassword = catchAsync(async (req, res, next) => {
   // 1) Get user based on POSTed email
