@@ -14,8 +14,8 @@ const userSchema = new mongoose.Schema<IUser>({
   numberPhone: {
     type: String,
     require: [true, "Please provide number phone."],
-    minLength: [10, "Number phone must be at least 10 numbers."],
-    maxLength: [11, "Number phone must maxium 11 numbers."],
+    minLength: [10, "Number phone must be at least 10 digitals."],
+    maxLength: [15, "Number phone must maxium 15 digitals."],
   },
   email: {
     type: String,
@@ -38,7 +38,7 @@ const userSchema = new mongoose.Schema<IUser>({
     type: String,
     require: [true, "Please provide address."],
     minLength: [5, "Address must be at lease 5 characters"],
-    maxLength: [30, "Address must be maxium 30 characters"],
+    maxLength: [100, "Address must be maxium 100 characters"],
   },
   password: {
     type: String,
@@ -49,6 +49,10 @@ const userSchema = new mongoose.Schema<IUser>({
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
       "Password must have at least 8 characters, one uppercase, one lowercase, one number, and one special character.",
     ],
+  },
+  refreshToken: {
+    type: String,
+    select: false,
   },
   dateOfBirth: {
     type: String,
@@ -111,11 +115,11 @@ userSchema.pre("save", function (next) {
 });
 
 userSchema.pre("save", function (next) {
-  const minAgeDate = dayjs().subtract(13, "year");
+  // const minAgeDate = dayjs().subtract(13, "year");
 
-  if (!dayjs(this.dateOfBirth).isBefore(minAgeDate)) {
-    return next(new Error("User must be at least 13 years old!"));
-  }
+  // if (!dayjs(this.dateOfBirth).isBefore(minAgeDate)) {
+  //   return next(new Error("User must be at least 13 years old!"));
+  // }
 
   next();
 });

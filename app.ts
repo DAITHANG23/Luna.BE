@@ -7,11 +7,26 @@ import mongoSanitize from "express-mongo-sanitize";
 import userRouter from "./routes/userRoutes";
 import compression from "compression";
 import errController from "./controllers/errorController";
+import cors from "cors";
 const AppError = require("./utils/appError");
 const xss = require("xss-clean");
 import hpp from "hpp";
 
 const app = express();
+
+// 1) GLOBAL MIDDLEWARES
+// Implement CORS
+app.use(cors({ origin: "http://localhost:3000/" }));
+// Access-Control-Allow-Origin *
+// api.natours.com, front-end natours.com
+app.use(
+  cors({
+    origin: "https://www.natours.com",
+  })
+);
+
+app.options("*", cors());
+// app.options('/api/v1/tours/:id', cors());
 
 app.get("/", (req, res) => {
   res.status(200).send("Hello from the server side!");

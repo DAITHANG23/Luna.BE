@@ -4,7 +4,7 @@ import catchAsync from "../utils/catchAsync";
 import AppError from "../utils/appError";
 import APIFeatures from "../utils/apiFeatures";
 
-exports.deleteOne = <T extends Document>(Model: Model<T>) =>
+export const deleteOne = <T extends Document>(Model: Model<T>) =>
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const doc = await Model.findByIdAndDelete(req.params.id);
 
@@ -18,7 +18,7 @@ exports.deleteOne = <T extends Document>(Model: Model<T>) =>
     });
   });
 
-exports.updateOne = <T extends Document>(Model: Model<T>) =>
+export const updateOne = <T extends Document>(Model: Model<T>) =>
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const doc = await Model.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
@@ -37,7 +37,7 @@ exports.updateOne = <T extends Document>(Model: Model<T>) =>
     });
   });
 
-exports.createOne = <T extends Document>(Model: Model<T>) =>
+export const createOne = <T extends Document>(Model: Model<T>) =>
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const doc = await Model.create(req.body);
 
@@ -49,7 +49,7 @@ exports.createOne = <T extends Document>(Model: Model<T>) =>
     });
   });
 
-exports.getOne = <T extends Document>(
+export const getOne = <T extends Document>(
   Model: Model<T>,
   popOptions?: PopulateOptions | (string | PopulateOptions)[]
 ) =>
@@ -70,7 +70,7 @@ exports.getOne = <T extends Document>(
     });
   });
 
-exports.getAll = <T extends Document>(Model: Model<T>) =>
+export const getAll = <T extends Document>(Model: Model<T>) =>
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     // To allow for nested GET reviews on tour (hack)
     let filter = {};
