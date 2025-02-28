@@ -16,16 +16,16 @@ const app = express();
 
 // 1) GLOBAL MIDDLEWARES
 // Implement CORS
-app.use(cors({ origin: "http://localhost:3000/" }));
+app.use(cors({ origin: "http://localhost:3000", credentials: true }));
 // Access-Control-Allow-Origin *
 // api.natours.com, front-end natours.com
-app.use(
-  cors({
-    origin: "https://www.natours.com",
-  })
-);
+// app.use(
+//   cors({
+//     origin: "http://localhost:3000",
+//   })
+// );
 
-app.options("*", cors());
+app.options("*", cors({ origin: "http://localhost:3000", credentials: true }));
 // app.options('/api/v1/tours/:id', cors());
 
 app.get("/", (req, res) => {
