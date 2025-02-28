@@ -62,7 +62,7 @@ const createSendToken = async (
   res.cookie("jwt", refreshToken, {
     expires: new Date(Date.now() + timeExpire * 24 * 60 * 60 * 1000),
     httpOnly: true,
-    secure: req.secure || req.header("x-forwarded-proto") === "https",
+    secure: process.env.NODE_ENV === "production" ? true : false, // Nếu đang test trên localhost, đổi thành false
     sameSite: "none",
   });
 
@@ -114,22 +114,32 @@ export const login = catchAsync(async (req, res, next) => {
 
 export const logout = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const refreshToken = req.cookies?.jwt;
+    let token;
+    if (
+      req.headers.authorization &&
+      req.headers.authorization.startsWith("Bearer")
+    ) {
+      token = req.headers.authorization.split(" ")[1];
+    }
 
-    if (!refreshToken)
-      return next(new AppError("No refresh token provider", 400));
+    if (!token) {
+      return next(
+        new AppError("You are not looged in! Please log in to get access.", 401)
+      );
+    }
 
-    const user = await User.findOne({ refreshToken });
+    const decoded = await verifyToken(token, process.env.JWT_SECRET as string);
 
-    if (user) {
-      user.refreshToken = undefined;
-      await user.save({ validateBeforeSave: false });
+    const currentUser = await User.findById(decoded.userId);
+    if (currentUser) {
+      currentUser.refreshToken = undefined;
+      await currentUser.save({ validateBeforeSave: false });
     }
 
     res.clearCookie("jwt", {
       httpOnly: true,
-      secure: req.secure || req.headers["x-forwarded-proto"] === "https",
-      sameSite: "strict",
+      secure: false,
+      sameSite: "none",
     });
     res.status(200).json({ status: "success", message: "Logged out" });
   }

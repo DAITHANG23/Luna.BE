@@ -4,88 +4,91 @@ import validator from "validator";
 import bcrypt from "bcryptjs";
 import dayjs from "dayjs";
 import { IUser } from "../types/index";
-const userSchema = new mongoose.Schema<IUser>({
-  name: {
-    type: String,
-    require: [true, "Please provider name."],
-    minLength: [3, "Name must be at least 3 characters."],
-    maxLength: [50, "Name must be maxium 50 characters."],
-  },
-  numberPhone: {
-    type: String,
-    require: [true, "Please provide number phone."],
-    minLength: [10, "Number phone must be at least 10 digitals."],
-    maxLength: [15, "Number phone must maxium 15 digitals."],
-  },
-  email: {
-    type: String,
-    require: [true, "Please provide email."],
-    unique: true,
-    lowercase: true,
-    validate: [validator.isEmail, "Please provide a valid email."],
-  },
-  role: {
-    type: String,
-    enum: ["admin", "user", "guest", "accountant", "bookingManager"],
-    default: "user",
-  },
-  gender: {
-    type: String,
-    enum: ["male", "female"],
-    default: "male",
-  },
-  address: {
-    type: String,
-    require: [true, "Please provide address."],
-    minLength: [5, "Address must be at lease 5 characters"],
-    maxLength: [100, "Address must be maxium 100 characters"],
-  },
-  password: {
-    type: String,
-    require: [true, "Please provide password."],
-    minlength: 8,
-    select: false,
-    match: [
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-      "Password must have at least 8 characters, one uppercase, one lowercase, one number, and one special character.",
-    ],
-  },
-  refreshToken: {
-    type: String,
-    select: false,
-  },
-  dateOfBirth: {
-    type: String,
-    require: [true, "Please provide birth of date."],
-  },
-  passwordConfirm: {
-    type: String,
-    require: [true, "Please provide password confirm"],
-    validate: {
-      // This only works on CREATE and SAVE!!!
-      validator: function (el) {
-        return el === this.password;
+const userSchema = new mongoose.Schema<IUser>(
+  {
+    name: {
+      type: String,
+      require: [true, "Please provider name."],
+      minLength: [3, "Name must be at least 3 characters."],
+      maxLength: [50, "Name must be maxium 50 characters."],
+    },
+    numberPhone: {
+      type: String,
+      require: [true, "Please provide number phone."],
+      minLength: [10, "Number phone must be at least 10 digitals."],
+      maxLength: [15, "Number phone must maxium 15 digitals."],
+    },
+    email: {
+      type: String,
+      require: [true, "Please provide email."],
+      unique: true,
+      lowercase: true,
+      validate: [validator.isEmail, "Please provide a valid email."],
+    },
+    role: {
+      type: String,
+      enum: ["admin", "user", "guest", "accountant", "bookingManager"],
+      default: "user",
+    },
+    gender: {
+      type: String,
+      enum: ["male", "female"],
+      default: "male",
+    },
+    address: {
+      type: String,
+      require: [true, "Please provide address."],
+      minLength: [5, "Address must be at lease 5 characters"],
+      maxLength: [100, "Address must be maxium 100 characters"],
+    },
+    password: {
+      type: String,
+      require: [true, "Please provide password."],
+      minlength: 8,
+      select: false,
+      match: [
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+        "Password must have at least 8 characters, one uppercase, one lowercase, one number, and one special character.",
+      ],
+    },
+    refreshToken: {
+      type: String,
+      select: false,
+    },
+    dateOfBirth: {
+      type: String,
+      require: [true, "Please provide birth of date."],
+    },
+    passwordConfirm: {
+      type: String,
+      require: [true, "Please provide password confirm"],
+      validate: {
+        // This only works on CREATE and SAVE!!!
+        validator: function (el) {
+          return el === this.password;
+        },
+        message: "Passwords are not the same!",
       },
-      message: "Passwords are not the same!",
+    },
+    passwordChangedAt: Date,
+    passwordResetToken: String,
+    passwordResetExpires: Date,
+    active: {
+      type: Boolean,
+      default: true,
+      select: false,
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+    updatedAt: {
+      type: Date,
+      default: Date.now,
     },
   },
-  passwordChangedAt: Date,
-  passwordResetToken: String,
-  passwordResetExpires: Date,
-  active: {
-    type: Boolean,
-    default: true,
-    select: false,
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
+  { versionKey: false }
+);
 
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
