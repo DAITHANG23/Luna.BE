@@ -124,7 +124,7 @@ export const logout = catchAsync(
 
     if (!token) {
       return next(
-        new AppError("You are not looged in! Please log in to get access.", 401)
+        new AppError("You are not logged in! Please log in to get access.", 401)
       );
     }
 
@@ -156,7 +156,7 @@ export const protect = catchAsync(async (req, res, next) => {
 
   if (!token) {
     return next(
-      new AppError("You are not looged in! Please log in to get access.", 401)
+      new AppError("You are not logged in! Please log in to get access.", 401)
     );
   }
 
