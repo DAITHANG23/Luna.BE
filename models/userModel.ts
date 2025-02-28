@@ -118,9 +118,14 @@ userSchema.pre("save", function (next) {
 });
 
 userSchema.pre("save", function (next) {
-  const minAgeDate = dayjs().subtract(13, "year");
+  const minAgeDate = dayjs().subtract(13, "year").startOf("day");
+  const dob = dayjs(this.dateOfBirth);
 
-  if (dayjs(this.dateOfBirth).isBefore(minAgeDate)) {
+  if (!dob.isValid()) {
+    return next(new Error("Invalid date of birth!"));
+  }
+
+  if (dob.isAfter(minAgeDate) || dob.isSame(minAgeDate)) {
     return next(new Error("User must be at least 13 years old!"));
   }
 

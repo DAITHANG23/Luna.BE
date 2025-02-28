@@ -76,7 +76,7 @@ const filterObj = <T extends Record<string, any>>(
 
 export const getMe = (req: Request, res: Response, next: NextFunction) => {
   const userId = req.user?.id || "";
-  console.log("userId:", userId);
+
   req.params.id = userId;
   next();
 };
