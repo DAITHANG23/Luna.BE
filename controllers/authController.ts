@@ -25,7 +25,7 @@ const signAccessToken = (id: string) => {
   const payload = { userId: id };
 
   const optionsAccess: jwt.SignOptions = {
-    expiresIn: "15m",
+    expiresIn: "2m",
   };
 
   return jwt.sign(payload, secretKey, optionsAccess);
@@ -59,12 +59,14 @@ const createSendToken = async (
 
   const timeExpire = Number(process.env.REFRESH_TOKEN_EXPIRED_IN);
 
-  res.cookie("jwt", refreshToken, {
-    expires: new Date(Date.now() + timeExpire * 24 * 60 * 60 * 1000),
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production" ? true : false, // Nếu đang test trên localhost, đổi thành false
-    sameSite: "none",
-  });
+  if (process.env.NODE_ENV === "production") {
+    res.cookie("jwt", refreshToken, {
+      expires: new Date(Date.now() + timeExpire * 24 * 60 * 60 * 1000),
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
+  }
 
   user.password = undefined;
   await User.findByIdAndUpdate(user._id, { refreshToken });
@@ -72,6 +74,7 @@ const createSendToken = async (
   res.status(statusCode).json({
     status: "success",
     accessToken,
+    refreshToken,
     data: {
       user,
     },
@@ -114,33 +117,37 @@ export const login = catchAsync(async (req, res, next) => {
 
 export const logout = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    let token;
-    if (
-      req.headers.authorization &&
-      req.headers.authorization.startsWith("Bearer")
-    ) {
-      token = req.headers.authorization.split(" ")[1];
-    }
+    const { refreshToken } = req.body;
 
-    if (!token) {
+    if (!refreshToken) {
       return next(
         new AppError("You are not logged in! Please log in to get access.", 401)
       );
     }
 
-    const decoded = await verifyToken(token, process.env.JWT_SECRET as string);
+    const decoded = await verifyToken(
+      refreshToken,
+      process.env.REFRESH_SECRET as string
+    );
 
     const currentUser = await User.findById(decoded.userId);
+
     if (currentUser) {
-      currentUser.refreshToken = undefined;
-      await currentUser.save({ validateBeforeSave: false });
+      await User.findByIdAndUpdate(
+        decoded.userId,
+        { refreshToken: null },
+        { new: true }
+      );
     }
 
-    res.clearCookie("jwt", {
-      httpOnly: true,
-      secure: false,
-      sameSite: "none",
-    });
+    if (process.env.NODE_ENV === "production") {
+      res.clearCookie("jwt", {
+        httpOnly: true,
+        secure: false,
+        sameSite: "none",
+      });
+    }
+
     res.status(200).json({ status: "success", message: "Logged out" });
   }
 );
@@ -228,7 +235,14 @@ export const restrictTo = (...roles: any) => {
 };
 
 export const refreshToken = catchAsync(async (req, res, next) => {
-  const refreshToken = req.cookies.jwt;
+  let refreshToken;
+
+  if (process.env.NODE_ENV === "production") {
+    refreshToken = req.cookies.jwt;
+  } else {
+    refreshToken = req.body.refreshToken;
+  }
+
   if (!refreshToken) return next(new AppError("Refresh token missing!", 401));
 
   const secretKey = process.env.REFRESH_SECRET;
@@ -243,7 +257,6 @@ export const refreshToken = catchAsync(async (req, res, next) => {
     return next(new AppError("Invalid refresh token!", 403));
   }
 
-  // Cấp access token mới
   const accessToken = signAccessToken(user._id as string);
 
   return res.json({ accessToken });
