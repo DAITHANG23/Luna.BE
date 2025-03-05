@@ -1,6 +1,6 @@
-import express from "express";
+import express, { NextFunction } from "express";
 import morgan from "morgan";
-import rateLimit from "express-rate-limit";
+import rateLimit, { Options } from "express-rate-limit";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import mongoSanitize from "express-mongo-sanitize";
@@ -39,11 +39,36 @@ if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
 
+const rateLimitHandler: Options["handler"] = (req, res, _next) => {
+  res.setHeader("Retry-After", "60"); // Thêm header Retry-After
+  res.status(429).json({
+    status: "fail",
+    error: {
+      messageError: "Too many requests, please try again later",
+      statusCode: 429,
+      status: "fail",
+      isOperational: true,
+    },
+    message: "Too many requests, please try again later",
+  });
+};
 // Limit requests from same API
 const limiter = rateLimit({
-  max: 100,
-  windowMs: 60 * 60 * 1000,
-  message: "Too many requests from this IP, please try again in an hour!",
+  windowMs: 1 * 60 * 1000,
+  max: 10,
+  message: {
+    status: "fail",
+    error: {
+      messageError: "Too many requests, please try again later",
+      statusCode: 429,
+      status: "fail",
+      isOperational: true,
+    },
+    message: "Too many requests, please try again later",
+  },
+  standardHeaders: true, // Thêm `RateLimit-*` headers vào response
+  legacyHeaders: false, // Ẩn `X-RateLimit-*` headers cũ
+  handler: rateLimitHandler,
 });
 app.use("/api", limiter);
 
