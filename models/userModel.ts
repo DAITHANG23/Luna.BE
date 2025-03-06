@@ -30,6 +30,10 @@ const userSchema = new mongoose.Schema<IUser>(
       enum: ["admin", "user", "guest", "accountant", "bookingManager"],
       default: "user",
     },
+    avatar: {
+      type: String,
+      default: "default.jpg",
+    },
     gender: {
       type: String,
       enum: ["male", "female"],

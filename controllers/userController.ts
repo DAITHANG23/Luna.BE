@@ -10,6 +10,7 @@ import {
   updateOne,
   deleteOne,
 } from "../controllers/handlerFactory";
+import { uploadSingleImage } from "../utils/uploadImage";
 
 // const multerStorage = multer.diskStorage({
 //   destination: (req, file, cb) => {
@@ -42,7 +43,38 @@ const upload = multer({
   fileFilter: multerFilter,
 });
 
-export const uploadUserPhoto = upload.single("photo");
+export const uploadUserPhoto = upload.single("avatar");
+
+export const singleUpload = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.user?.id || "";
+    if (!req.file) {
+      return next();
+    }
+
+    const result = await uploadSingleImage(req.file.buffer, "avatarUsers");
+    if (!result?.secure_url) {
+      return next(new AppError("Upload to Cloudinary failed", 500));
+    }
+
+    // Lưu URL avatar vào DB
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { avatar: result.secure_url },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    res.status(200).json({
+      message: "Upload successful",
+      updatedUser,
+      secure_url: result.secure_url,
+      public_id: result.public_id,
+    });
+  }
+);
 
 export const resizeUserPhoto = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -101,7 +133,16 @@ export const updateMe = catchAsync(
       "address",
       "numberPhone"
     );
-    if (req.file) filteredBody.photo = req.file.filename;
+    if (req.file) {
+      const result = await uploadSingleImage(req.file.buffer, "avatarUsers");
+      if (!result?.secure_url) {
+        return next(new AppError("Upload to Cloudinary failed", 500));
+      }
+      console.log(result.secure_url);
+      filteredBody.avatar = result.secure_url;
+    }
+
+    console.log(filteredBody);
 
     // 3) Update user document
     const userId = req.user?.id || "";

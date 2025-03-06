@@ -9,6 +9,7 @@ export interface IUser extends Document {
   passwordConfirm?: string;
   address: string;
   gender: Gender;
+  avatar: string;
   dateOfBirth: string;
   numberPhone: string;
   role: string;
@@ -26,3 +27,18 @@ export interface IUser extends Document {
   changedPasswordAfter(JWTTimestamp: number): boolean;
   createPasswordResetToken(): string;
 }
+
+export type CloudinaryUploadResult = {
+  asset_id?: string;
+  public_id: string;
+  version?: number;
+  width?: number;
+  height?: number;
+  format?: string;
+  resource_type?: string;
+  created_at?: string;
+  bytes?: number;
+  url?: string;
+  secure_url: string;
+  original_filename?: string;
+};
