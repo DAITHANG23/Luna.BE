@@ -22,6 +22,7 @@ import {
   createUser,
   updateUser,
   deleteUser,
+  singleUpload,
 } from "../controllers/userController";
 
 const router = express.Router();
@@ -39,7 +40,13 @@ router.use(protect);
 
 router.patch("/updateMyPassword", updatePassword);
 router.get("/me", getMe, getUser);
-router.patch("/updateMe", uploadUserPhoto, resizeUserPhoto, updateMe);
+router.patch(
+  "/updateMe",
+  uploadUserPhoto,
+  singleUpload,
+  resizeUserPhoto,
+  updateMe
+);
 router.delete("/deleteMe", deleteMe);
 
 router.use(restrictTo("admin"));

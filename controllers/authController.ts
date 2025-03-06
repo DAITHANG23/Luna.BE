@@ -25,7 +25,7 @@ const signAccessToken = (id: string) => {
   const payload = { userId: id };
 
   const optionsAccess: jwt.SignOptions = {
-    expiresIn: "2m",
+    expiresIn: "1h",
   };
 
   return jwt.sign(payload, secretKey, optionsAccess);
@@ -41,7 +41,7 @@ const signRefreshToken = (id: string) => {
   const payload = { userId: id };
 
   const optionsRefresh: jwt.SignOptions = {
-    expiresIn: "7d",
+    expiresIn: "30d",
   };
 
   return jwt.sign(payload, secretKey, optionsRefresh);
