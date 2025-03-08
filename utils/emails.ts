@@ -21,7 +21,7 @@ const Email = class Email {
   private from: string;
   constructor(user: IUser, url: string) {
     this.to = user.email;
-    this.firstName = user.name.split(" ")[0];
+    this.firstName = user.fullName.split(" ")[0];
     this.url = url;
     this.from = `Dom Nguyen <${process.env.EMAIL_FROM}>`;
   }

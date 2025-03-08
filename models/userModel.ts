@@ -6,7 +6,7 @@ import dayjs from "dayjs";
 import { IUser } from "../types/index";
 const userSchema = new mongoose.Schema<IUser>(
   {
-    name: {
+    fullName: {
       type: String,
       require: [true, "Please provider name."],
       minLength: [3, "Name must be at least 3 characters."],
@@ -32,8 +32,8 @@ const userSchema = new mongoose.Schema<IUser>(
     },
     avatar: {
       type: String,
-      default: "default.jpg",
     },
+    avatarUrl: { type: String },
     gender: {
       type: String,
       enum: ["male", "female"],
