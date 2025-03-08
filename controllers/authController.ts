@@ -83,7 +83,7 @@ const createSendToken = async (
 
 export const signup = catchAsync(async (req, res, next) => {
   const newUser = await User.create({
-    name: req.body.name,
+    fullName: req.body.fullName,
     email: req.body.email,
     numberPhone: req.body.numberPhone,
     password: req.body.password,

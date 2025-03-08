@@ -60,7 +60,7 @@ export const singleUpload = catchAsync(
     // Lưu URL avatar vào DB
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { avatar: result.secure_url },
+      { avatarUrl: result.secure_url },
       {
         new: true,
         runValidators: true,
@@ -128,10 +128,12 @@ export const updateMe = catchAsync(
     // 2) Filtered out unwanted fields names that are not allowed to be updated
     const filteredBody = filterObj(
       req.body,
-      "name",
+      "fullName",
       "email",
       "address",
-      "numberPhone"
+      "numberPhone",
+      "dateOfBirth",
+      "gender"
     );
     if (req.file) {
       const result = await uploadSingleImage(req.file.buffer, "avatarUsers");
@@ -139,7 +141,7 @@ export const updateMe = catchAsync(
         return next(new AppError("Upload to Cloudinary failed", 500));
       }
       console.log(result.secure_url);
-      filteredBody.avatar = result.secure_url;
+      filteredBody.avatarUrl = result.secure_url;
     }
 
     console.log(filteredBody);

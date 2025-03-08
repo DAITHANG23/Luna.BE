@@ -3,13 +3,14 @@ import { Document } from "mongoose";
 type Gender = "male" | "female";
 
 export interface IUser extends Document {
-  name: string;
+  fullName: string;
   email: string;
   password: string;
   passwordConfirm?: string;
   address: string;
   gender: Gender;
-  avatar: string;
+  avatar: String;
+  avatarUrl: string;
   dateOfBirth: string;
   numberPhone: string;
   role: string;
