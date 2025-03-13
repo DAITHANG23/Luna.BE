@@ -11,6 +11,7 @@ import {
   deleteOne,
 } from "../controllers/handlerFactory";
 import { uploadSingleImage } from "../utils/uploadImage";
+import cloudinary from "cloudinary";
 
 // const multerStorage = multer.diskStorage({
 //   destination: (req, file, cb) => {
@@ -52,6 +53,16 @@ export const singleUpload = catchAsync(
       return next();
     }
 
+    try {
+      const user = await User.findById(req.user?.id);
+
+      if (user && user.avatarId) {
+        await cloudinary.v2.uploader.destroy(user.avatarId);
+      }
+    } catch (error) {
+      return next(new AppError("Internal server error", 500));
+    }
+
     const result = await uploadSingleImage(req.file.buffer, "avatarUsers");
     if (!result?.secure_url) {
       return next(new AppError("Upload to Cloudinary failed", 500));
@@ -60,7 +71,7 @@ export const singleUpload = catchAsync(
     // Lưu URL avatar vào DB
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { avatarUrl: result.secure_url },
+      { avatarUrl: result.secure_url, avatarId: result.public_id },
       {
         new: true,
         runValidators: true,
@@ -140,12 +151,11 @@ export const updateMe = catchAsync(
       if (!result?.secure_url) {
         return next(new AppError("Upload to Cloudinary failed", 500));
       }
-      console.log(result.secure_url);
       filteredBody.avatarUrl = result.secure_url;
+      filteredBody.avatarId = result.public_id;
     }
 
-    console.log(filteredBody);
-
+    console.log("filteredBody:", filteredBody);
     // 3) Update user document
     const userId = req.user?.id || "";
     const updatedUser = await User.findByIdAndUpdate(userId, filteredBody, {

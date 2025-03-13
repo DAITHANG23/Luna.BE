@@ -30,10 +30,14 @@ const userSchema = new mongoose.Schema<IUser>(
       enum: ["admin", "user", "guest", "accountant", "bookingManager"],
       default: "user",
     },
-    avatar: {
+    avatarId: {
       type: String,
     },
-    avatarUrl: { type: String },
+    avatarUrl: {
+      type: String,
+      default:
+        "https://res.cloudinary.com/dn797d3j3/image/upload/v1741875000/avatarUsers/defaultAvatar_g02o8c.jpg",
+    },
     gender: {
       type: String,
       enum: ["male", "female"],
