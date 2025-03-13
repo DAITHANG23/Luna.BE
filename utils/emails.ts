@@ -51,19 +51,18 @@ const Email = class Email {
   // Send the actual email
   async send(template: string, subject: string): Promise<void> {
     // 1) Render HTML based on a pug template
-    // const html = pug.renderFile(`${__dirname}/../views/email/${template}.pug`, {
-    //   firstName: this.firstName,
-    //   url: this.url,
-    //   subject,
-    // });
+    const html = pug.renderFile(`${__dirname}/../views/email/${template}.pug`, {
+      firstName: this.firstName,
+      url: this.url,
+      subject,
+    });
 
-    console.log("subject:", subject);
     // 2) Define email options
     const mailOptions = {
       from: this.from,
       to: this.to,
       subject,
-      // html,
+      html,
       text: subject,
     };
 
