@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { IUser } from "../types";
+import { IUser } from "../@types";
 declare global {
   namespace Express {
     interface Request {

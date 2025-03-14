@@ -3,7 +3,7 @@ import mongoose, { Query } from "mongoose";
 import validator from "validator";
 import bcrypt from "bcryptjs";
 import dayjs from "dayjs";
-import { IUser } from "../types/index";
+import { IUser } from "../@types/index";
 const userSchema = new mongoose.Schema<IUser>(
   {
     fullName: {

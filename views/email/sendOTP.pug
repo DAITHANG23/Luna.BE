@@ -2,17 +2,18 @@ extends baseEmail
 
 block content
   p Hi #{firstName},
-  p Forgot your password? Submit a PATCH request with your new password and passwordConfirm to: #{url}.
+  p Welcome to Domique Fusion, we're glad to have you 🎉🙏
   p You are requesting a verification code for authentication on our system. Please use the OTP below to proceed: #{otp}
   p This code is valid for 5 minutes. For security reasons, please do not share this code with anyone.
   p (Website for this action not yet implememnted.)
   table.btn.btn-primary(role='presentation', border='0', cellpadding='0', cellspacing='0')
     tbody
       tr
-        td(align='left')
+        td(align='center')
           table(role='presentation', border='0', cellpadding='0', cellspacing='0')
             tbody
               tr
                 td
-                  a(href=`${url}`, target='_blank') Reset your password
-  p If you didn't forget your password, please ignore this email!
+                  img(src="https://res.cloudinary.com/dn797d3j3/image/upload/v1741971186/avatarUsers/cover-img-2_y5fiwb.jpg" alt="cover-email" width="500" height="200")
+  p If you need any help with booking restaurants, please don't hesitate to contact me!
+  p - Dom Nguyen, CEO

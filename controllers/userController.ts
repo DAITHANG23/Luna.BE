@@ -67,16 +67,26 @@ export const singleUpload = catchAsync(
     if (!result?.secure_url) {
       return next(new AppError("Upload to Cloudinary failed", 500));
     }
+    const filteredBody = filterObj(
+      req.body,
+      "fullName",
+      "email",
+      "address",
+      "numberPhone",
+      "dateOfBirth",
+      "gender"
+    );
+
+    if (result.secure_url) {
+      (filteredBody.avatarUrl = result.secure_url),
+        (filteredBody.avatarId = result.public_id);
+    }
 
     // Lưu URL avatar vào DB
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      { avatarUrl: result.secure_url, avatarId: result.public_id },
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
+    const updatedUser = await User.findByIdAndUpdate(userId, filteredBody, {
+      new: true,
+      runValidators: true,
+    });
 
     res.status(200).json({
       message: "Upload successful",
@@ -155,7 +165,6 @@ export const updateMe = catchAsync(
       filteredBody.avatarId = result.public_id;
     }
 
-    console.log("filteredBody:", filteredBody);
     // 3) Update user document
     const userId = req.user?.id || "";
     const updatedUser = await User.findByIdAndUpdate(userId, filteredBody, {

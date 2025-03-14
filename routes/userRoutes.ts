@@ -9,6 +9,7 @@ import {
   protect,
   refreshToken,
   restrictTo,
+  verifyOtp,
 } from "../controllers/authController";
 
 import {
@@ -29,6 +30,7 @@ const router = express.Router();
 
 router.post("/signup", signup);
 router.post("/login", login);
+router.post("/verify-otp", verifyOtp);
 
 router.post("/logout", logout);
 router.post("/refreshToken", refreshToken);
