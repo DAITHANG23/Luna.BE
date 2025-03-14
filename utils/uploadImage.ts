@@ -1,5 +1,5 @@
 import cloudinary from "cloudinary";
-import { CloudinaryUploadResult } from "../types";
+import { CloudinaryUploadResult } from "../@types";
 
 const initialzeCloudinary = () => {
   cloudinary.v2.config({

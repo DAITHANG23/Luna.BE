@@ -5,6 +5,8 @@ import User from "../models/userModel";
 import AppError from "../utils/appError";
 import Email from "../utils/emails";
 import crypto from "crypto";
+import { authenticator } from "otplib";
+import { IUser } from "../@types";
 
 const verifyToken = (token: string, secret: string): Promise<any> => {
   return new Promise((resolve, reject) => {
@@ -82,16 +84,95 @@ const createSendToken = async (
 };
 
 export const signup = catchAsync(async (req, res, next) => {
-  const newUser = await User.create({
-    fullName: req.body.fullName,
-    email: req.body.email,
-    numberPhone: req.body.numberPhone,
-    password: req.body.password,
-    passwordConfirm: req.body.passwordConfirm,
-    gender: req.body.gender,
-    dateOfBirth: req.body.dateOfBirth,
-    address: req.body.address,
-  });
+  const {
+    fullName,
+    email,
+    numberPhone,
+    password,
+    passwordConfirm,
+    dateOfBirth,
+    address,
+  } = req.body;
+
+  const requiredFields: Record<string, any> = {
+    fullName,
+    email,
+    numberPhone,
+    password,
+    passwordConfirm,
+    dateOfBirth,
+    address,
+  };
+
+  const missingFields = (
+    Object.keys(requiredFields) as Array<keyof typeof requiredFields>
+  ).filter((key) => !requiredFields[key]);
+
+  if (missingFields.length) {
+    return next(
+      new AppError(`Missing Fields: ${missingFields.join(", ")} `, 400)
+    );
+  }
+
+  authenticator.options = { step: 300 };
+
+  const secret = process.env.OTP_KEY_SECRET || "";
+
+  const otp = authenticator.generate(secret);
+
+  const userBody = {
+    fullName,
+    email,
+    numberPhone,
+    password,
+    passwordConfirm,
+    dateOfBirth,
+    address,
+  } as IUser;
+
+  await new Email(userBody, "", otp).sendOTP();
+
+  res.json({ message: "OTP is sent, please check your email!" });
+});
+
+export const verifyOtp = catchAsync(async (req, res, next) => {
+  const {
+    fullName,
+    email,
+    numberPhone,
+    password,
+    passwordConfirm,
+    gender,
+    dateOfBirth,
+    address,
+  } = req.body;
+
+  const userOtp = req.body.otp;
+
+  const userBody = {
+    fullName,
+    email,
+    numberPhone,
+    password,
+    passwordConfirm,
+    gender,
+    dateOfBirth,
+    address,
+  } as IUser;
+
+  const secret = process.env.OTP_KEY_SECRET || "";
+
+  if (!userOtp) {
+    return next(new AppError("OTP is null. Please enter OTP!", 400));
+  }
+
+  const isValid = authenticator.check(userOtp, secret);
+
+  if (!isValid) {
+    return next(new AppError("OTP is invalid. Please enter OTP again", 401));
+  }
+
+  const newUser = await User.create(userBody);
 
   const url = "http://localhost:3000/login";
 
@@ -268,6 +349,12 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
   // 1) Get user based on POSTed email
   const user = await User.findOne({ email: req.body.email });
 
+  authenticator.options = { step: 300 };
+
+  const secret = process.env.OTP_KEY_SECRET || "";
+
+  const otp = authenticator.generate(secret);
+
   if (!user) {
     return next(new AppError("There is no user with email address.", 404));
   }
@@ -281,7 +368,7 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
   try {
     const resetURL = `http://localhost:3000/reset-password/${resetToken}`;
 
-    await new Email(user, resetURL).sendPasswordReset();
+    await new Email(user, resetURL, otp).sendPasswordReset();
 
     res.status(200).json({
       status: "success",
@@ -307,6 +394,20 @@ export const resetPassword = catchAsync(async (req, res, next) => {
     .createHash("sha256")
     .update(req.params.token)
     .digest("hex");
+
+  const secret = process.env.OTP_KEY_SECRET || "";
+
+  const userOtp = req.body.otp;
+
+  if (!userOtp) {
+    return next(new AppError("OTP is null. Please enter OTP!", 400));
+  }
+
+  const isValid = authenticator.check(userOtp, secret);
+
+  if (!isValid) {
+    return next(new AppError("OTP is invalid. Please enter OTP again", 401));
+  }
 
   const user = await User.findOne({
     passwordResetToken: hashedToken,

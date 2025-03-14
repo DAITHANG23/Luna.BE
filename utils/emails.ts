@@ -1,7 +1,7 @@
 import nodemailer from "nodemailer";
 import SMTPTransport = require("nodemailer/lib/smtp-transport");
 import pug from "pug";
-import { IUser } from "../types";
+import { IUser } from "../@types";
 import htmlToText from "html-to-text";
 
 // import { fileURLToPath } from 'url';
@@ -19,10 +19,12 @@ const Email = class Email {
   private firstName: string;
   private url: string;
   private from: string;
-  constructor(user: IUser, url: string) {
+  private otp: string;
+  constructor(user: IUser, url?: string, otp?: string) {
     this.to = user.email;
     this.firstName = user.fullName.split(" ")[0];
-    this.url = url;
+    this.url = url || "";
+    this.otp = otp || "";
     this.from = `Dom Nguyen <${process.env.EMAIL_FROM}>`;
   }
 
@@ -54,6 +56,7 @@ const Email = class Email {
     const html = pug.renderFile(`${__dirname}/../views/email/${template}.pug`, {
       firstName: this.firstName,
       url: this.url,
+      otp: this.otp,
       subject,
     });
 
@@ -79,6 +82,10 @@ const Email = class Email {
       "passwordReset",
       "Your password reset token (valid for only 10 minutes)"
     );
+  }
+
+  async sendOTP() {
+    await this.send("sendOTP", "Your OTP register (valid for only 5 minutes)");
   }
 };
 
