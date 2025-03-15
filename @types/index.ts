@@ -21,6 +21,8 @@ export interface IUser extends Document {
   passwordChangedAt?: Date;
   passwordResetToken?: string;
   passwordResetExpires?: Date;
+  otpCode?: string;
+  otpExpires?: Date;
   correctPassword(
     candidatePassword: string,
     userPassword: string
@@ -28,6 +30,8 @@ export interface IUser extends Document {
   changedPasswordAfter(JWTTimestamp: number): boolean;
   createPasswordResetToken(): string;
 }
+
+export interface IUserEmail extends Partial<IUser> {}
 
 export type CloudinaryUploadResult = {
   asset_id?: string;

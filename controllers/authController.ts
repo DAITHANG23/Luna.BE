@@ -6,8 +6,8 @@ import AppError from "../utils/appError";
 import Email from "../utils/emails";
 import crypto from "crypto";
 import { authenticator } from "otplib";
-import { IUser } from "../@types";
-
+import { IUser, IUserEmail } from "../@types";
+import redis from "../utils/redis";
 const verifyToken = (token: string, secret: string): Promise<any> => {
   return new Promise((resolve, reject) => {
     jwt.verify(token, secret, (err, decoded) => {
@@ -114,11 +114,13 @@ export const signup = catchAsync(async (req, res, next) => {
     );
   }
 
-  authenticator.options = { step: 300 };
+  authenticator.options = { step: 90 };
 
   const secret = process.env.OTP_KEY_SECRET || "";
 
   const otp = authenticator.generate(secret);
+
+  await redis.set(`otp:${email}`, otp, "EX", 300);
 
   const userBody = {
     fullName,
@@ -160,17 +162,21 @@ export const verifyOtp = catchAsync(async (req, res, next) => {
     address,
   } as IUser;
 
-  const secret = process.env.OTP_KEY_SECRET || "";
-
   if (!userOtp) {
     return next(new AppError("OTP is null. Please enter OTP!", 400));
   }
 
-  const isValid = authenticator.check(userOtp, secret);
+  const storedOtp = await redis.get(`otp:${email}`);
 
-  if (!isValid) {
-    return next(new AppError("OTP is invalid. Please enter OTP again", 401));
+  if (!storedOtp) {
+    return next(new AppError("OTP expired or invalid", 401));
   }
+
+  if (userOtp !== storedOtp) {
+    return next(new AppError("OTP is incorrect. Please enter OTP again", 401));
+  }
+
+  await redis.del(`otp:${email}`);
 
   const newUser = await User.create(userBody);
 
@@ -349,7 +355,7 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
   // 1) Get user based on POSTed email
   const user = await User.findOne({ email: req.body.email });
 
-  authenticator.options = { step: 300 };
+  authenticator.options = { step: 90 };
 
   const secret = process.env.OTP_KEY_SECRET || "";
 
@@ -359,6 +365,8 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
     return next(new AppError("There is no user with email address.", 404));
   }
 
+  user.otpCode = otp;
+  user.otpExpires = new Date(Date.now() + 90 * 1000);
   // 2) Generate the random reset token
   const resetToken = user.createPasswordResetToken();
 
@@ -388,25 +396,59 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
   }
 });
 
+export const resendOtp = catchAsync(async (req, res, next) => {
+  const user = await User.findOne({ email: req.body.email });
+
+  const { email } = req.body;
+
+  let userInfo: IUserEmail = { email, fullName: "Customer" };
+  if (!email) {
+    return next(new AppError("Email is required", 400));
+  }
+
+  authenticator.options = { step: 90 };
+  const secret = process.env.OTP_KEY_SECRET || "";
+  const newOtp = authenticator.generate(secret);
+
+  if (user) {
+    user.otpCode = newOtp;
+    user.otpExpires = new Date(Date.now() + 90 * 1000);
+
+    userInfo = {
+      email: user.email || email,
+      fullName: user.fullName || "Customer",
+    };
+    await user.save({ validateBeforeSave: false });
+  }
+
+  await redis.set(`otp:${email}`, newOtp, "EX", 300);
+
+  try {
+    await new Email(userInfo, "", newOtp).sendPasswordReset();
+
+    res.status(200).json({
+      status: "success",
+      message: "New OTP sent to email!",
+    });
+  } catch (error) {
+    return next(new AppError("Error sending email. Try again later!", 500));
+  }
+});
+
 export const resetPassword = catchAsync(async (req, res, next) => {
+  const { otp, password, passwordConfirm, email } = req.body;
+
+  if (!email) {
+    return next(new AppError("Email is required", 400));
+  }
   // 1) Get user based on the token
   const hashedToken = crypto
     .createHash("sha256")
     .update(req.params.token)
     .digest("hex");
 
-  const secret = process.env.OTP_KEY_SECRET || "";
-
-  const userOtp = req.body.otp;
-
-  if (!userOtp) {
+  if (!otp) {
     return next(new AppError("OTP is null. Please enter OTP!", 400));
-  }
-
-  const isValid = authenticator.check(userOtp, secret);
-
-  if (!isValid) {
-    return next(new AppError("OTP is invalid. Please enter OTP again", 401));
   }
 
   const user = await User.findOne({
@@ -414,14 +456,35 @@ export const resetPassword = catchAsync(async (req, res, next) => {
     passwordResetExpires: { $gt: Date.now() },
   });
 
-  // 2) If token has not expired, and there is user, set the new password
   if (!user) {
     return next(new AppError("Token is invalid or has expired", 400));
   }
-  user.password = req.body.password;
-  user.passwordConfirm = req.body.passwordConfirm;
+
+  const storedOtp = await redis.get(`otp:${email}`);
+
+  if (!user || !user.otpCode || !user.otpExpires || !storedOtp) {
+    return next(new AppError("Invalid OTP request", 400));
+  }
+
+  if (user.otpExpires < new Date()) {
+    return next(new AppError("OTP has expired. Please request a new one", 400));
+  }
+
+  const isValidOtp = otp === storedOtp || otp === user.otpCode;
+
+  if (!isValidOtp) {
+    return next(new AppError("OTP is invalid. Please enter OTP again", 401));
+  }
+
+  await redis.del(`otp:${email}`);
+  // 2) If token has not expired, and there is user, set the new password
+
+  user.password = password;
+  user.passwordConfirm = passwordConfirm;
   user.passwordResetToken = undefined;
   user.passwordResetExpires = undefined;
+  user.otpCode = undefined;
+  user.otpExpires = undefined;
   await user.save();
 
   // 3) Update changedPasswordAt property for the user

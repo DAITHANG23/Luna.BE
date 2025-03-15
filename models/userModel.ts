@@ -78,6 +78,12 @@ const userSchema = new mongoose.Schema<IUser>(
         message: "Passwords are not the same!",
       },
     },
+    otpCode: {
+      type: String,
+    },
+    otpExpires: {
+      type: Date,
+    },
     passwordChangedAt: Date,
     passwordResetToken: String,
     passwordResetExpires: Date,
