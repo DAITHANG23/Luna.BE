@@ -1,7 +1,7 @@
 import nodemailer from "nodemailer";
 import SMTPTransport = require("nodemailer/lib/smtp-transport");
 import pug from "pug";
-import { IUser } from "../@types";
+import { IUser, IUserEmail } from "../@types";
 import htmlToText from "html-to-text";
 
 // import { fileURLToPath } from 'url';
@@ -20,9 +20,9 @@ const Email = class Email {
   private url: string;
   private from: string;
   private otp: string;
-  constructor(user: IUser, url?: string, otp?: string) {
-    this.to = user.email;
-    this.firstName = user.fullName.split(" ")[0];
+  constructor(user: IUserEmail, url?: string, otp?: string) {
+    this.to = user.email || "";
+    this.firstName = user.fullName?.split(" ")[0] || "";
     this.url = url || "";
     this.otp = otp || "";
     this.from = `Dom Nguyen <${process.env.EMAIL_FROM}>`;
