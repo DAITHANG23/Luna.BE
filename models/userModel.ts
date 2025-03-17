@@ -6,6 +6,7 @@ import dayjs from "dayjs";
 import { IUser } from "../@types/index";
 const userSchema = new mongoose.Schema<IUser>(
   {
+    googleId: { type: String },
     fullName: {
       type: String,
       require: [true, "Please provider name."],
@@ -48,6 +49,7 @@ const userSchema = new mongoose.Schema<IUser>(
       require: [true, "Please provide address."],
       minLength: [5, "Address must be at lease 5 characters"],
       maxLength: [100, "Address must be maxium 100 characters"],
+      default: "Thong Nhat, Go Vap",
     },
     password: {
       type: String,
@@ -66,6 +68,7 @@ const userSchema = new mongoose.Schema<IUser>(
     dateOfBirth: {
       type: String,
       require: [true, "Please provide birth of date."],
+      default: "1997-05-23",
     },
     passwordConfirm: {
       type: String,

@@ -5,10 +5,13 @@ import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import mongoSanitize from "express-mongo-sanitize";
 import userRouter from "./routes/userRoutes";
+import authRouter from "./routes/authRoutes";
 import compression from "compression";
 import errController from "./controllers/errorController";
 import cors from "cors";
-const AppError = require("./utils/appError");
+import passport from "./utils/passport";
+import session from "express-session";
+import AppError from "./utils/appError";
 const xss = require("xss-clean");
 import hpp from "hpp";
 
@@ -27,6 +30,16 @@ app.use(cors({ origin: "http://localhost:3000", credentials: true }));
 
 app.options("*", cors({ origin: "http://localhost:3000", credentials: true }));
 // app.options('/api/v1/tours/:id', cors());
+
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "",
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.get("/", (req, res) => {
   res.status(200).send("Hello from the server side!");
@@ -96,6 +109,7 @@ app.use(
 // app.use('/', viewRouter);
 // app.use('/api/v1/tours', tourRouter);
 app.use("/api/v1/users", userRouter);
+app.use("/api/v1/auth", authRouter);
 // app.use('/api/v1/reviews', reviewRouter);
 // app.use('/api/v1/bookings', bookingRouter);
 

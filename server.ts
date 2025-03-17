@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import dotenv = require("dotenv");
+import { Request, Response } from "express";
 
 dotenv.config({ path: "./.env" });
 
@@ -15,7 +16,9 @@ mongoose
   .catch((err) => console.log(err));
 
 const app = require("./app");
-
+app.get("/favicon.ico", (_req: Request, res: Response) =>
+  res.status(204).end()
+);
 const port = process.env.PORT || 8001;
 const server = app.listen(port, () => {
   console.log(`App running on the ${port}...`);

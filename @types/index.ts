@@ -3,6 +3,7 @@ import { Document } from "mongoose";
 type Gender = "male" | "female";
 
 export interface IUser extends Document {
+  googleId: string;
   fullName: string;
   email: string;
   password: string;

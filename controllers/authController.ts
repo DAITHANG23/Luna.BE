@@ -8,6 +8,7 @@ import crypto from "crypto";
 import { authenticator } from "otplib";
 import { IUser, IUserEmail } from "../@types";
 import redis from "../utils/redis";
+import axios from "axios";
 const verifyToken = (token: string, secret: string): Promise<any> => {
   return new Promise((resolve, reject) => {
     jwt.verify(token, secret, (err, decoded) => {
@@ -514,3 +515,40 @@ export const updatePassword = catchAsync(async (req, res, next) => {
   // 4) Log user in, send JWT
   createSendToken(user, 200, req, res);
 });
+
+export const googleAuthCallback = catchAsync(
+  async (req: Request, res: Response) => {
+    console.log("Google callback query:", req.query);
+    console.log("Requesting access token with:", {
+      code: req.query.code,
+      client_id: process.env.GOOGLE_CLIENT_ID,
+      client_secret: process.env.GOOGLE_CLIENT_SECRET,
+      redirect_uri: "http://localhost:8001/api/v1/auth/google/callback",
+      grant_type: "authorization_code",
+    });
+
+    axios
+      .post("https://oauth2.googleapis.com/token", {
+        code: req.query.code,
+        client_id: process.env.GOOGLE_CLIENT_ID,
+        client_secret: process.env.GOOGLE_CLIENT_SECRET,
+        redirect_uri: "http://localhost:8001/api/v1/auth/google/callback",
+        grant_type: "authorization_code",
+      })
+      .then((response) => console.log(response.data))
+      .catch((error) => console.log(error.response.data));
+    try {
+      const { user, accessToken, refreshToken } = req.user as any;
+
+      if (!user || !accessToken || !refreshToken) {
+        return res.status(400).json({ message: "Authentication failed" });
+      }
+
+      return res.redirect(
+        `http://localhost:3000/?accessToken=${accessToken}&refreshToken=${refreshToken}`
+      );
+    } catch (error) {
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
+);
