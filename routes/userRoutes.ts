@@ -11,6 +11,7 @@ import {
   restrictTo,
   verifyOtp,
   resendOtp,
+  googleAuthCallback,
 } from "../controllers/authController";
 
 import {
@@ -26,6 +27,7 @@ import {
   deleteUser,
   singleUpload,
 } from "../controllers/userController";
+import passport from "../utils/passport";
 
 const router = express.Router();
 
@@ -33,6 +35,15 @@ router.post("/signup", signup);
 router.post("/login", login);
 router.post("/verify-otp", verifyOtp);
 router.post("/resendOtp", resendOtp);
+// router.get(
+//   "/google",
+//   passport.authenticate("google", { scope: ["profile", "email"] })
+// );
+// router.get(
+//   "/google/callback",
+//   passport.authenticate("google", { session: false }),
+//   googleAuthCallback
+// );
 
 router.post("/logout", logout);
 router.post("/refreshToken", refreshToken);

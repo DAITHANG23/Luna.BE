@@ -8,6 +8,7 @@ import crypto from "crypto";
 import { authenticator } from "otplib";
 import { IUser, IUserEmail } from "../@types";
 import redis from "../utils/redis";
+import axios from "axios";
 const verifyToken = (token: string, secret: string): Promise<any> => {
   return new Promise((resolve, reject) => {
     jwt.verify(token, secret, (err, decoded) => {
@@ -514,3 +515,21 @@ export const updatePassword = catchAsync(async (req, res, next) => {
   // 4) Log user in, send JWT
   createSendToken(user, 200, req, res);
 });
+
+export const googleAuthCallback = catchAsync(
+  async (req: Request, res: Response) => {
+    try {
+      const { user, accessToken, refreshToken } = req.user as any;
+
+      if (!user || !accessToken) {
+        return res.status(400).json({ message: "Authentication failed" });
+      }
+
+      return res.redirect(
+        `http://localhost:3000/?accessToken=${accessToken}&refreshToken=${refreshToken}`
+      );
+    } catch (error) {
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
+);
