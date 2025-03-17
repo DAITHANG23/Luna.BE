@@ -518,29 +518,10 @@ export const updatePassword = catchAsync(async (req, res, next) => {
 
 export const googleAuthCallback = catchAsync(
   async (req: Request, res: Response) => {
-    console.log("Google callback query:", req.query);
-    console.log("Requesting access token with:", {
-      code: req.query.code,
-      client_id: process.env.GOOGLE_CLIENT_ID,
-      client_secret: process.env.GOOGLE_CLIENT_SECRET,
-      redirect_uri: "http://localhost:8001/api/v1/auth/google/callback",
-      grant_type: "authorization_code",
-    });
-
-    axios
-      .post("https://oauth2.googleapis.com/token", {
-        code: req.query.code,
-        client_id: process.env.GOOGLE_CLIENT_ID,
-        client_secret: process.env.GOOGLE_CLIENT_SECRET,
-        redirect_uri: "http://localhost:8001/api/v1/auth/google/callback",
-        grant_type: "authorization_code",
-      })
-      .then((response) => console.log(response.data))
-      .catch((error) => console.log(error.response.data));
     try {
       const { user, accessToken, refreshToken } = req.user as any;
 
-      if (!user || !accessToken || !refreshToken) {
+      if (!user || !accessToken) {
         return res.status(400).json({ message: "Authentication failed" });
       }
 

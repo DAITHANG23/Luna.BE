@@ -43,10 +43,7 @@ passport.use(
         await user.save();
 
         const authData = {
-          data: {
-            user,
-          },
-
+          user,
           accessToken: newAccessToken,
           refreshToken: newRefreshToken,
         };
