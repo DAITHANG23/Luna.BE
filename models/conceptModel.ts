@@ -1,4 +1,4 @@
-import mongoose, { Schema, Types } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import { IConcept } from "../@types";
 
 const conceptSchema = new mongoose.Schema<IConcept>({
@@ -13,18 +13,12 @@ const conceptSchema = new mongoose.Schema<IConcept>({
     ref: "User",
     required: [true, "Concept must have a manager"],
   },
-  staffs: [
-    {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-    },
-  ],
   totalProfit: {
     type: Number,
     require: [true, "Concept Restaurant must be have total profit."],
   },
 });
 
-const ConceptRestaurant = mongoose.model("User", conceptSchema);
+const ConceptRestaurant = mongoose.model("Concept", conceptSchema);
 
 export default ConceptRestaurant;

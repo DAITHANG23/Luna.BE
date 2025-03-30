@@ -19,6 +19,8 @@ export interface IUser extends Document {
   active: boolean;
   createdAt: Date;
   updatedAt: Date;
+  concept: string;
+  restaurant: string;
   passwordChangedAt?: Date;
   passwordResetToken?: string;
   passwordResetExpires?: Date;
@@ -57,14 +59,28 @@ export interface Dish extends Document {
   price: number;
 }
 
-export interface Restaurant extends Document {
+export interface IRestaurant extends Document {
   name: string;
-  numberPhone: string;
   description: string;
   address: string;
-  rating: string;
+  numberPhone: string;
+  bookingManager: Types.ObjectId;
+  ratings: number;
   timeSlot: string;
   dishes: Array<Dish>;
+  images: Array<string>;
+  ratingsQuantity: number;
+  priceDiscount: number;
+  summary: string;
+  imageCover: string;
+  active: boolean;
+  locations: Array<string>;
+  type: string;
+  voucher: string;
+  profit: number;
+  totalSale: number;
+  totalExpense: number;
+  staffs: Array<Types.ObjectId>;
 }
 
 export interface IConcept extends Document {
@@ -73,5 +89,4 @@ export interface IConcept extends Document {
   address: string;
   managerConcept: Types.ObjectId;
   totalProfit: number;
-  staffs: Array<Types.ObjectId>;
 }
