@@ -1,4 +1,4 @@
-import { Document } from "mongoose";
+import { Document, Types } from "mongoose";
 
 type Gender = "male" | "female";
 
@@ -48,3 +48,30 @@ export type CloudinaryUploadResult = {
   secure_url: string;
   original_filename?: string;
 };
+
+export interface Dish extends Document {
+  name: string;
+  description: string;
+  type: string;
+  image: string;
+  price: number;
+}
+
+export interface Restaurant extends Document {
+  name: string;
+  numberPhone: string;
+  description: string;
+  address: string;
+  rating: string;
+  timeSlot: string;
+  dishes: Array<Dish>;
+}
+
+export interface IConcept extends Document {
+  name: string;
+  description: string;
+  address: string;
+  managerConcept: Types.ObjectId;
+  totalProfit: number;
+  staffs: Array<Types.ObjectId>;
+}
