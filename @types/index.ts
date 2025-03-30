@@ -1,4 +1,4 @@
-import { Document } from "mongoose";
+import { Document, Types } from "mongoose";
 
 type Gender = "male" | "female";
 
@@ -19,6 +19,8 @@ export interface IUser extends Document {
   active: boolean;
   createdAt: Date;
   updatedAt: Date;
+  concept: string;
+  restaurant: string;
   passwordChangedAt?: Date;
   passwordResetToken?: string;
   passwordResetExpires?: Date;
@@ -48,3 +50,43 @@ export type CloudinaryUploadResult = {
   secure_url: string;
   original_filename?: string;
 };
+
+export interface Dish extends Document {
+  name: string;
+  description: string;
+  type: string;
+  image: string;
+  price: number;
+}
+
+export interface IRestaurant extends Document {
+  name: string;
+  description: string;
+  address: string;
+  numberPhone: string;
+  bookingManager: Types.ObjectId;
+  ratings: number;
+  timeSlot: string;
+  dishes: Array<Dish>;
+  images: Array<string>;
+  ratingsQuantity: number;
+  priceDiscount: number;
+  summary: string;
+  imageCover: string;
+  active: boolean;
+  locations: Array<string>;
+  type: string;
+  voucher: string;
+  profit: number;
+  totalSale: number;
+  totalExpense: number;
+  staffs: Array<Types.ObjectId>;
+}
+
+export interface IConcept extends Document {
+  name: string;
+  description: string;
+  address: string;
+  managerConcept: Types.ObjectId;
+  totalProfit: number;
+}

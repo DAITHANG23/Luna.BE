@@ -28,8 +28,15 @@ const userSchema = new mongoose.Schema<IUser>(
     },
     role: {
       type: String,
-      enum: ["admin", "user", "guest", "accountant", "bookingManager"],
-      default: "user",
+      enum: [
+        "admin",
+        "user",
+        "customer",
+        "accountant",
+        "bookingManager",
+        "conceptManager",
+      ],
+      default: "customer",
     },
     avatarId: {
       type: String,
@@ -51,6 +58,7 @@ const userSchema = new mongoose.Schema<IUser>(
       maxLength: [100, "Address must be maxium 100 characters"],
       default: "Thong Nhat, Go Vap",
     },
+
     password: {
       type: String,
       require: [true, "Please provide password."],
@@ -60,6 +68,26 @@ const userSchema = new mongoose.Schema<IUser>(
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
         "Password must have at least 8 characters, one uppercase, one lowercase, one number, and one special character.",
       ],
+    },
+    concept: {
+      type: String,
+      ref: "Concept",
+      validate: {
+        validator: function (v) {
+          return this.role !== "customer" || !v;
+        },
+        message: "Customer can not have concept",
+      },
+    },
+    restaurant: {
+      type: String,
+      ref: "Restaurant",
+      validate: {
+        validator: function (v) {
+          return this.role !== "customer" || !v;
+        },
+        message: "Customer can not have restaurant",
+      },
     },
     refreshToken: {
       type: String,
