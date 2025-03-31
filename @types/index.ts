@@ -59,6 +59,19 @@ export interface Dish extends Document {
   price: number;
 }
 
+export interface TimeSlotType extends Document {
+  startTime: string;
+  endTime: string;
+  available: boolean;
+}
+
+export interface ILocation {
+  type: "Point";
+  coordinate: number[];
+  address?: string;
+  description?: string;
+}
+
 export interface IRestaurant extends Document {
   name: string;
   description: string;
@@ -66,7 +79,8 @@ export interface IRestaurant extends Document {
   numberPhone: string;
   bookingManager: Types.ObjectId;
   ratings: number;
-  timeSlot: string;
+  concept: Types.ObjectId;
+  timeSlot: TimeSlotType;
   dishes: Array<Dish>;
   images: Array<string>;
   ratingsQuantity: number;
@@ -74,13 +88,14 @@ export interface IRestaurant extends Document {
   summary: string;
   imageCover: string;
   active: boolean;
-  locations: Array<string>;
+  locations: Array<ILocation>;
   type: string;
   voucher: string;
   profit: number;
   totalSale: number;
   totalExpense: number;
   staffs: Array<Types.ObjectId>;
+  createdAt: Date;
 }
 
 export interface IConcept extends Document {
