@@ -33,7 +33,7 @@ const userSchema = new mongoose.Schema<IUser>(
         "user",
         "customer",
         "accountant",
-        "bookingManager",
+        "restaurantManager",
         "conceptManager",
       ],
       default: "customer",

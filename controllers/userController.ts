@@ -46,69 +46,66 @@ const upload = multer({
 
 export const uploadUserPhoto = upload.single("avatar");
 
-export const singleUpload = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const userId = req.user?.id || "";
-    if (!req.file) {
-      return next();
-    }
+// export const singleUpload = catchAsync(
+//   async (req: Request, res: Response, next: NextFunction) => {
+//     const userId = req.user?.id || "";
+//     if (!req.file) {
+//       return next();
+//     }
 
-    try {
-      const user = await User.findById(req.user?.id);
+//     try {
+//       const user = await User.findById(req.user?.id);
 
-      if (user && user.avatarId) {
-        await cloudinary.v2.uploader.destroy(user.avatarId);
-      }
-    } catch (error) {
-      return next(new AppError("Internal server error", 500));
-    }
+//       if (user && user.avatarId) {
+//         await cloudinary.v2.uploader.destroy(user.avatarId);
+//       }
+//     } catch (error) {
+//       return next(new AppError("Internal server error", 500));
+//     }
 
-    const result = await uploadSingleImage(req.file.buffer, "avatarUsers");
-    if (!result?.secure_url) {
-      return next(new AppError("Upload to Cloudinary failed", 500));
-    }
-    const filteredBody = filterObj(
-      req.body,
-      "fullName",
-      "email",
-      "address",
-      "numberPhone",
-      "dateOfBirth",
-      "gender"
-    );
+//     const result = await uploadSingleImage(req.file.buffer, "avatarUsers");
+//     if (!result?.secure_url) {
+//       return next(new AppError("Upload to Cloudinary failed", 500));
+//     }
+//     const filteredBody = filterObj(
+//       req.body,
+//       "fullName",
+//       "email",
+//       "address",
+//       "numberPhone",
+//       "dateOfBirth",
+//       "gender"
+//     );
 
-    if (result.secure_url) {
-      (filteredBody.avatarUrl = result.secure_url),
-        (filteredBody.avatarId = result.public_id);
-    }
+//     if (result.secure_url) {
+//       (filteredBody.avatarUrl = result.secure_url),
+//         (filteredBody.avatarId = result.public_id);
+//     }
 
-    // Lưu URL avatar vào DB
-    const updatedUser = await User.findByIdAndUpdate(userId, filteredBody, {
-      new: true,
-      runValidators: true,
-    });
+//     // Lưu URL avatar vào DB
+//     const updatedUser = await User.findByIdAndUpdate(userId, filteredBody, {
+//       new: true,
+//       runValidators: true,
+//     });
 
-    res.status(200).json({
-      message: "Upload successful",
-      updatedUser,
-      secure_url: result.secure_url,
-      public_id: result.public_id,
-    });
-  }
-);
+//     res.status(200).json({
+//       message: "Upload successful",
+//       updatedUser,
+//       secure_url: result.secure_url,
+//       public_id: result.public_id,
+//     });
+//   }
+// );
 
 export const resizeUserPhoto = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     if (!req.file) return next();
 
-    const userId = req.user?.id || "";
-    req.file.filename = `user-${userId}-${Date.now()}.jpeg`;
-
-    await sharp(req.file.buffer)
+    req.file.buffer = await sharp(req.file.buffer)
       .resize(500, 500)
       .toFormat("jpeg")
       .jpeg({ quality: 90 })
-      .toFile(`public/img/users/${req.file.filename}`);
+      .toBuffer();
 
     next();
   }
@@ -136,7 +133,9 @@ export const getMe = (req: Request, res: Response, next: NextFunction) => {
 
 export const updateMe = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    // 1) Create error if user POSTs password data
+    const userId = req.user?.id || "";
+
+    // 1) Ngăn chặn cập nhật password ở đây
     if (req.body.password || req.body.passwordConfirm) {
       return next(
         new AppError(
@@ -146,7 +145,7 @@ export const updateMe = catchAsync(
       );
     }
 
-    // 2) Filtered out unwanted fields names that are not allowed to be updated
+    // 2) Lọc bỏ các trường không được phép cập nhật
     const filteredBody = filterObj(
       req.body,
       "fullName",
@@ -156,17 +155,32 @@ export const updateMe = catchAsync(
       "dateOfBirth",
       "gender"
     );
+
+    // 3) Nếu có file ảnh, xử lý upload ảnh lên Cloudinary
     if (req.file) {
-      const result = await uploadSingleImage(req.file.buffer, "avatarUsers");
-      if (!result?.secure_url) {
-        return next(new AppError("Upload to Cloudinary failed", 500));
+      try {
+        const user = await User.findById(userId);
+
+        // Nếu người dùng đã có avatar cũ, xóa nó trước khi upload ảnh mới
+        if (user?.avatarId) {
+          await cloudinary.v2.uploader.destroy(user.avatarId);
+        }
+
+        // Upload ảnh mới lên Cloudinary
+        const result = await uploadSingleImage(req.file.buffer, "avatarUsers");
+        if (!result?.secure_url) {
+          return next(new AppError("Upload to Cloudinary failed", 500));
+        }
+
+        // Cập nhật thông tin avatar
+        filteredBody.avatarUrl = result.secure_url;
+        filteredBody.avatarId = result.public_id;
+      } catch (error) {
+        return next(new AppError("Internal server error", 500));
       }
-      filteredBody.avatarUrl = result.secure_url;
-      filteredBody.avatarId = result.public_id;
     }
 
-    // 3) Update user document
-    const userId = req.user?.id || "";
+    // 4) Cập nhật user trong database
     const updatedUser = await User.findByIdAndUpdate(userId, filteredBody, {
       new: true,
       runValidators: true,
