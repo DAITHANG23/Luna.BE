@@ -46,10 +46,16 @@ const restaurantSchema = new mongoose.Schema<IRestaurant>({
       price: { type: Number, required: true },
     },
   ],
-  images: [{ type: String }],
   ratingsQuantity: {
     type: Number,
     required: [true, "Restaurant must be have ratings quantity."],
+  },
+  ratingsAverage: {
+    type: Number,
+    default: 4.5,
+    min: [1, "Rating must be above 1.0"],
+    max: [5, "Rating must be below 5.0"],
+    set: (val: number) => Math.round(val * 10) / 10,
   },
   priceDiscount: {
     type: Number,
@@ -58,10 +64,6 @@ const restaurantSchema = new mongoose.Schema<IRestaurant>({
   summary: {
     type: String,
     required: [true, "Restaurant must be have summary."],
-  },
-  imageCover: {
-    type: String,
-    required: [true, "Restaurant must be have imageCover."],
   },
   active: {
     type: Boolean,
@@ -104,6 +106,12 @@ const restaurantSchema = new mongoose.Schema<IRestaurant>({
     type: Date,
     default: Date.now,
   },
+});
+
+restaurantSchema.virtual("reviews", {
+  ref: "Review",
+  foreignField: "restaurant",
+  localField: "_id",
 });
 
 const Restaurant = mongoose.model("Restaurant", restaurantSchema);

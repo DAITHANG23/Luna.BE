@@ -82,11 +82,10 @@ export interface IRestaurant extends Document {
   concept: Types.ObjectId;
   timeSlot: TimeSlotType;
   dishes: Array<Dish>;
-  images: Array<string>;
   ratingsQuantity: number;
+  ratingsAverage: number;
   priceDiscount: number;
   summary: string;
-  imageCover: string;
   active: boolean;
   locations: Array<ILocation>;
   type: string;
@@ -104,4 +103,11 @@ export interface IConcept extends Document {
   address: string;
   managerConcept: Types.ObjectId;
   totalProfit: number;
+  images: Array<string>;
+  imageCover: string;
+}
+
+export interface MulterFiles {
+  imageCover: [File];
+  images: [File, File, File];
 }

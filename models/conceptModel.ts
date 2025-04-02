@@ -8,6 +8,7 @@ const conceptSchema = new mongoose.Schema<IConcept>({
     require: [true, "Please provider description."],
   },
   address: { type: String, require: [true, "Please provider address."] },
+  images: [{ type: String }],
   managerConcept: {
     type: Schema.Types.ObjectId,
     ref: "User",
@@ -16,6 +17,10 @@ const conceptSchema = new mongoose.Schema<IConcept>({
   totalProfit: {
     type: Number,
     require: [true, "Concept Restaurant must be have total profit."],
+  },
+  imageCover: {
+    type: String,
+    required: [true, "Restaurant must be have imageCover."],
   },
 });
 
