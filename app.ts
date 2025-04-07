@@ -6,6 +6,8 @@ import cookieParser from "cookie-parser";
 import mongoSanitize from "express-mongo-sanitize";
 import userRouter from "./routes/userRoutes";
 import authRouter from "./routes/authRoutes";
+import restaurantRouter from "./routes/restaurantRoutes";
+import conceptRouter from "./routes/conceptRoutes";
 import compression from "compression";
 import errController from "./controllers/errorController";
 import cors from "cors";
@@ -107,7 +109,8 @@ app.use(
 
 // 3) ROUTES
 // app.use('/', viewRouter);
-// app.use('/api/v1/tours', tourRouter);
+app.use("/api/v1/restaurants", restaurantRouter);
+app.use("/api/v1/concepts", conceptRouter);
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/auth", authRouter);
 // app.use('/api/v1/reviews', reviewRouter);

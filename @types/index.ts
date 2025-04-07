@@ -80,15 +80,12 @@ export interface IRestaurant extends Document {
   bookingManager: Types.ObjectId;
   ratings: number;
   concept: Types.ObjectId;
-  timeSlot: TimeSlotType;
-  dishes: Array<Dish>;
   ratingsQuantity: number;
   ratingsAverage: number;
   priceDiscount: number;
   summary: string;
   active: boolean;
   locations: Array<ILocation>;
-  type: string;
   voucher: string;
   profit: number;
   totalSale: number;
@@ -101,10 +98,13 @@ export interface IConcept extends Document {
   name: string;
   description: string;
   address: string;
-  managerConcept: Types.ObjectId;
+  conceptManager: Types.ObjectId;
   totalProfit: number;
   images: Array<string>;
   imageCover: string;
+  timeSlot: TimeSlotType;
+  dishes: Array<Dish>;
+  type: string;
 }
 
 export interface MulterFiles {

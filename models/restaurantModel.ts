@@ -30,22 +30,6 @@ const restaurantSchema = new mongoose.Schema<IRestaurant>({
     max: 5,
     require: [true, "Restaurant must be have ratings."],
   },
-  timeSlot: [
-    {
-      startTime: String,
-      endTime: String,
-      available: Boolean,
-    },
-  ],
-  dishes: [
-    {
-      name: { type: String, required: true },
-      description: { type: String },
-      type: { type: String, required: true },
-      image: { type: String },
-      price: { type: Number, required: true },
-    },
-  ],
   ratingsQuantity: {
     type: Number,
     required: [true, "Restaurant must be have ratings quantity."],
@@ -81,11 +65,6 @@ const restaurantSchema = new mongoose.Schema<IRestaurant>({
       description: String,
     },
   ],
-  type: {
-    type: String,
-    enum: ["HOTPOT", "BBQ", "JAPANESE", "STEAK HOUSE", "OTHER"],
-    required: [true, "Restaurant must be have type."],
-  },
   voucher: {
     type: String,
     required: [true, "Restaurant must be have voucher."],
