@@ -46,57 +46,6 @@ const upload = multer({
 
 export const uploadUserPhoto = upload.single("avatar");
 
-// export const singleUpload = catchAsync(
-//   async (req: Request, res: Response, next: NextFunction) => {
-//     const userId = req.user?.id || "";
-//     if (!req.file) {
-//       return next();
-//     }
-
-//     try {
-//       const user = await User.findById(req.user?.id);
-
-//       if (user && user.avatarId) {
-//         await cloudinary.v2.uploader.destroy(user.avatarId);
-//       }
-//     } catch (error) {
-//       return next(new AppError("Internal server error", 500));
-//     }
-
-//     const result = await uploadSingleImage(req.file.buffer, "avatarUsers");
-//     if (!result?.secure_url) {
-//       return next(new AppError("Upload to Cloudinary failed", 500));
-//     }
-//     const filteredBody = filterObj(
-//       req.body,
-//       "fullName",
-//       "email",
-//       "address",
-//       "numberPhone",
-//       "dateOfBirth",
-//       "gender"
-//     );
-
-//     if (result.secure_url) {
-//       (filteredBody.avatarUrl = result.secure_url),
-//         (filteredBody.avatarId = result.public_id);
-//     }
-
-//     // Lưu URL avatar vào DB
-//     const updatedUser = await User.findByIdAndUpdate(userId, filteredBody, {
-//       new: true,
-//       runValidators: true,
-//     });
-
-//     res.status(200).json({
-//       message: "Upload successful",
-//       updatedUser,
-//       secure_url: result.secure_url,
-//       public_id: result.public_id,
-//     });
-//   }
-// );
-
 export const resizeUserPhoto = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     if (!req.file) return next();
