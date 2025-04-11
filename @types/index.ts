@@ -105,6 +105,7 @@ export interface IConcept extends Document {
   timeSlot: TimeSlotType;
   dishes: Array<Dish>;
   type: string;
+  totalRatings: number;
 }
 
 export interface MulterFiles {

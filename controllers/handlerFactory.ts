@@ -84,12 +84,16 @@ export const getAll = <T extends Document>(Model: Model<T>) =>
     // const doc = await features.query.explain();
     const doc = await features.query;
 
+    const sanitizedDocs = doc.map((item: any) => {
+      const { profit, totalProfit, ...rest } = item.toObject();
+      return rest;
+    });
     // SEND RESPONSE
     res.status(200).json({
       status: "success",
-      results: doc.length,
+      results: sanitizedDocs.length,
       data: {
-        data: doc,
+        data: sanitizedDocs,
       },
     });
   });
