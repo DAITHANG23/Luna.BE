@@ -43,6 +43,10 @@ const conceptSchema = new mongoose.Schema<IConcept>({
     enum: ["HOTPOT", "BBQ", "JAPANESE", "STEAK HOUSE", "OTHER"],
     required: [true, "Concept must be have type."],
   },
+  totalRatings: {
+    type: Number,
+    default: 4.5,
+  },
 });
 
 const ConceptRestaurant = mongoose.model("Concept", conceptSchema);
