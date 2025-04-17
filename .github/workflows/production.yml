@@ -34,6 +34,6 @@ jobs:
         env:
           RAILWAY_TOKEN: ${{ secret.RAILWAY_TOKEN }}
         run: |
-          npm install -g railway
+          npm install -g @railway/cli
           railway up --service heroic-prosperity
     # - run: npm test
