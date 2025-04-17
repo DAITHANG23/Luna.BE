@@ -112,7 +112,9 @@ export const updateMe = catchAsync(
 
         // Nếu người dùng đã có avatar cũ, xóa nó trước khi upload ảnh mới
         if (user?.avatarId) {
-          await cloudinary.v2.uploader.destroy(user.avatarId);
+          await cloudinary.v2.uploader.destroy(user.avatarId, {
+            invalidate: true,
+          });
         }
 
         // Upload ảnh mới lên Cloudinary
