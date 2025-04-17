@@ -14,6 +14,8 @@ import cors from "cors";
 import passport from "./utils/passport";
 import session from "express-session";
 import AppError from "./utils/appError";
+import redis from "./utils/redis";
+import { RedisStore } from "connect-redis";
 const xss = require("xss-clean");
 import hpp from "hpp";
 
@@ -35,9 +37,18 @@ app.options("*", cors({ origin: "http://localhost:3000", credentials: true }));
 
 app.use(
   session({
+    store: new RedisStore({
+      client: redis,
+      prefix: "sess:", // optional
+    }),
     secret: process.env.SESSION_SECRET || "",
     resave: false,
     saveUninitialized: false,
+    cookie: {
+      maxAge: 1000 * 60 * 60,
+      secure: process.env.NODE_ENV === "production",
+      httpOnly: true,
+    },
   })
 );
 app.use(passport.initialize());
@@ -70,7 +81,7 @@ const rateLimitHandler: Options["handler"] = (req, res, _next) => {
 // Limit requests from same API
 const limiter = rateLimit({
   windowMs: 1 * 60 * 1000,
-  max: 10,
+  max: 30,
   message: {
     status: "fail",
     error: {
