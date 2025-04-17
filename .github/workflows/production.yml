@@ -33,7 +33,7 @@ jobs:
     steps:
       - name: Deploy to Railway
         env:
-          RAILWAY_DEPLOY_TOKEN: ${{ secrets.RAILWAY_DEPLOY_TOKEN }}
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
           npm install -g @railway/cli
           railway up --service heroic-prosperity
