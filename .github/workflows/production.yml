@@ -5,11 +5,12 @@ name: Node.js CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     strategy:
@@ -17,18 +18,18 @@ jobs:
         node-version: [20.x]
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    - run: npm ci
+      - uses: actions/checkout@v4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+      - run: npm ci
 
-    - name: Deploy to Railway
-      env: 
-        RAILWAY_TOKEN: ${{secret.RAILWAY_TOKEN}}
-      run: |
-        npm install -g railway
-        railway up --service heroic-prosperity
+      - name: Deploy to Railway
+        env:
+          RAILWAY_TOKEN: ${{ secret.RAILWAY_TOKEN }}
+        run: |
+          npm install -g railway
+          railway up --service heroic-prosperity
     # - run: npm test
