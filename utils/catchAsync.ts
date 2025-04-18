@@ -1,9 +1,10 @@
 import { Request, Response, NextFunction } from "express";
-import { IUser } from "../@types";
+import { User as AppUser } from "../@types/index";
 declare global {
   namespace Express {
+    interface User extends AppUser {}
     interface Request {
-      user?: IUser;
+      user?: User;
     }
   }
 }

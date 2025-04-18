@@ -1,7 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import multer, { FileFilterCallback } from "multer";
 import sharp from "sharp";
-import User from "../models/userModel";
 import catchAsync from "../utils/catchAsync";
 import AppError from "../utils/appError";
 import {
@@ -12,6 +11,7 @@ import {
 } from "../controllers/handlerFactory";
 import { uploadSingleImage } from "../utils/uploadImage";
 import cloudinary from "cloudinary";
+import UserModel from "../models/userModel";
 
 // const multerStorage = multer.diskStorage({
 //   destination: (req, file, cb) => {
@@ -108,7 +108,7 @@ export const updateMe = catchAsync(
     // 3) Nếu có file ảnh, xử lý upload ảnh lên Cloudinary
     if (req.file) {
       try {
-        const user = await User.findById(userId);
+        const user = await UserModel.findById(userId);
 
         // Nếu người dùng đã có avatar cũ, xóa nó trước khi upload ảnh mới
         if (user?.avatarId) {
@@ -132,10 +132,14 @@ export const updateMe = catchAsync(
     }
 
     // 4) Cập nhật user trong database
-    const updatedUser = await User.findByIdAndUpdate(userId, filteredBody, {
-      new: true,
-      runValidators: true,
-    });
+    const updatedUser = await UserModel.findByIdAndUpdate(
+      userId,
+      filteredBody,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
 
     res.status(200).json({
       status: "success",
@@ -149,7 +153,7 @@ export const updateMe = catchAsync(
 export const deleteMe = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const userId = req.user?.id || "";
-    await User.findByIdAndUpdate(userId, { active: false });
+    await UserModel.findByIdAndUpdate(userId, { active: false });
 
     res.status(204).json({
       status: "success",
@@ -165,9 +169,9 @@ export const createUser = (req: Request, res: Response) => {
   });
 };
 
-export const getUser = getOne(User);
-export const getAllUsers = getAll(User);
+export const getUser = getOne(UserModel);
+export const getAllUsers = getAll(UserModel);
 
 // Do NOT update passwords with this!
-export const updateUser = updateOne(User);
-export const deleteUser = deleteOne(User);
+export const updateUser = updateOne(UserModel);
+export const deleteUser = deleteOne(UserModel);
