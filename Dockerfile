@@ -21,7 +21,7 @@
     COPY --from=builder /app/dist ./dist
 
     # Sao chép .env vào container
-    COPY .env /.env
+    # COPY .env /.env
     
     ENV NODE_ENV=production
     EXPOSE 3000
