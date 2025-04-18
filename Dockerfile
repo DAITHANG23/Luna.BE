@@ -1,5 +1,5 @@
 # ---- Stage 1: Build ----
-    FROM node:22-slim AS base
+    FROM node:lts-alpine AS base
     FROM base AS builder
     
     WORKDIR /app
