@@ -42,7 +42,7 @@ passport.use(
         user.refreshToken = newRefreshToken;
         await user.save();
 
-        const authData = {
+        const authData: any = {
           user,
           accessToken: newAccessToken,
           refreshToken: newRefreshToken,

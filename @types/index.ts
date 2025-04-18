@@ -2,7 +2,7 @@ import { Document, Types } from "mongoose";
 
 type Gender = "male" | "female";
 
-export interface IUser extends Document {
+export interface User extends Document {
   googleId: string;
   fullName: string;
   email: string;
@@ -34,7 +34,7 @@ export interface IUser extends Document {
   createPasswordResetToken(): string;
 }
 
-export interface IUserEmail extends Partial<IUser> {}
+export interface IUserEmail extends Partial<User> {}
 
 export type CloudinaryUploadResult = {
   asset_id?: string;

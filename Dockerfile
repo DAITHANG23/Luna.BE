@@ -39,6 +39,9 @@ RUN npm install --omit=dev
 # Chỉ sao chép thư mục 'dist' chứa code JavaScript đã biên dịch
 COPY --from=builder /app/dist ./dist
 
+# Sao chép .env vào container
+COPY .env .env
+
 # Sao chép các tài nguyên khác cần thiết cho production (nếu có, ví dụ: thư mục public, templates,...)
 # Ví dụ: COPY --from=builder /app/public ./public
 
