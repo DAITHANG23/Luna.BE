@@ -75,7 +75,7 @@ const sendErrorProd = (err: AppError, req: Request, res: Response) => {
   // B) RENDERED WEBSITE
   // A) Operational, trusted error: send message to client
   if (err.isOperational) {
-    return res.status(err.statusCode).render("error", {
+    return res.status(err.statusCode).json({
       title: "Something went wrong!",
       msg: err.message,
     });
@@ -84,7 +84,7 @@ const sendErrorProd = (err: AppError, req: Request, res: Response) => {
   // 1) Log error
   console.error("ERROR 💥", err);
   // 2) Send generic message
-  return res.status(err.statusCode).render("error", {
+  return res.status(err.statusCode).json({
     title: "Something went wrong!",
     msg: "Please try again later.",
   });
