@@ -37,3 +37,7 @@ jobs:
         run: |
           npm install -g @railway/cli
           railway up --service Luna.BE
+      - name: Create .env file from GitHub Actions env vars
+        run: |
+          echo "FRONTEND_URL=${{ secrets.FRONTEND_URL }}" >> .env
+          cat .env
