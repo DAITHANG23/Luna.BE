@@ -3,8 +3,8 @@ import mongoose, { Query } from "mongoose";
 import validator from "validator";
 import bcrypt from "bcryptjs";
 import dayjs from "dayjs";
-import { IUser } from "../@types/index";
-const userSchema = new mongoose.Schema<IUser>(
+import { User } from "../@types/index";
+const userSchema = new mongoose.Schema<User>(
   {
     googleId: { type: String },
     fullName: {
@@ -208,6 +208,6 @@ userSchema.methods.createPasswordResetToken = function () {
   return resetToken;
 };
 
-const User = mongoose.model("User", userSchema);
+const UserModel = mongoose.model("User", userSchema);
 
-export default User;
+export default UserModel;

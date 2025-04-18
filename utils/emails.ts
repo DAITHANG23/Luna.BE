@@ -1,7 +1,7 @@
 import nodemailer from "nodemailer";
 import SMTPTransport = require("nodemailer/lib/smtp-transport");
 import pug from "pug";
-import { IUser, IUserEmail } from "../@types";
+import { IUserEmail } from "../@types";
 import htmlToText from "html-to-text";
 
 // import { fileURLToPath } from 'url';

@@ -25,6 +25,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
       - run: npm ci
+      # - run: npm test
 
   deploy:
     needs: build
@@ -32,8 +33,7 @@ jobs:
     steps:
       - name: Deploy to Railway
         env:
-          RAILWAY_TOKEN: ${{ secret.RAILWAY_TOKEN }}
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
-          npm install -g railway
-          railway up --service heroic-prosperity
-    # - run: npm test
+          npm install -g @railway/cli
+          railway up --service Luna.BE

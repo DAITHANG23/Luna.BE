@@ -1,12 +1,12 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import catchAsync from "../utils/catchAsync";
-import User from "../models/userModel";
+import UserModel from "../models/userModel";
 import AppError from "../utils/appError";
 import Email from "../utils/emails";
 import crypto from "crypto";
 import { authenticator } from "otplib";
-import { IUser, IUserEmail } from "../@types";
+import { User, IUserEmail } from "../@types/index";
 import redis from "../utils/redis";
 
 const verifyToken = (token: string, secret: string): Promise<any> => {
@@ -72,7 +72,7 @@ const createSendToken = async (
   }
 
   user.password = undefined;
-  await User.findByIdAndUpdate(user._id, { refreshToken });
+  await UserModel.findByIdAndUpdate(user._id, { refreshToken });
 
   res.status(statusCode).json({
     status: "success",
@@ -131,7 +131,7 @@ export const signup = catchAsync(async (req, res, next) => {
     passwordConfirm,
     dateOfBirth,
     address,
-  } as IUser;
+  } as User;
 
   await new Email(userBody, "", otp).sendOTP();
 
@@ -161,7 +161,7 @@ export const verifyOtp = catchAsync(async (req, res, next) => {
     gender,
     dateOfBirth,
     address,
-  } as IUser;
+  } as User;
 
   if (!userOtp) {
     return next(new AppError("OTP is null. Please enter OTP!", 400));
@@ -179,7 +179,7 @@ export const verifyOtp = catchAsync(async (req, res, next) => {
 
   await redis.del(`otp:${email}`);
 
-  const newUser = await User.create(userBody);
+  const newUser = await UserModel.create(userBody);
 
   const url = "http://localhost:3000/login";
 
@@ -196,7 +196,7 @@ export const login = catchAsync(async (req, res, next) => {
     return next(new AppError("Please provide email and password!", 400));
   }
   // 2) Check if user exists && password is correct
-  const user = await User.findOne({ email }).select("+password");
+  const user = await UserModel.findOne({ email }).select("+password");
 
   if (!user) {
     return next(new AppError("Email is not exist", 401));
@@ -224,10 +224,10 @@ export const logout = catchAsync(
       process.env.REFRESH_SECRET as string
     );
 
-    const currentUser = await User.findById(decoded.userId);
+    const currentUser = await UserModel.findById(decoded.userId);
 
     if (currentUser) {
-      await User.findByIdAndUpdate(
+      await UserModel.findByIdAndUpdate(
         decoded.userId,
         { refreshToken: null },
         { new: true }
@@ -263,7 +263,7 @@ export const protect = catchAsync(async (req, res, next) => {
 
   const decoded = await verifyToken(token, process.env.JWT_SECRET as string);
 
-  const currentUser = await User.findById(decoded.userId);
+  const currentUser = await UserModel.findById(decoded.userId);
 
   if (!currentUser) {
     return next(
@@ -294,7 +294,7 @@ export const isLoggedIn = async (
       );
 
       // 2) Check if user still exists
-      const currentUser = await User.findById(decoded.id);
+      const currentUser = await UserModel.findById(decoded.id);
       if (!currentUser) {
         return next();
       }
@@ -345,7 +345,7 @@ export const refreshToken = catchAsync(async (req, res, next) => {
 
   const decoded = await verifyToken(refreshToken, secretKey);
 
-  const user = await User.findById(decoded.userId).select("+refreshToken");
+  const user = await UserModel.findById(decoded.userId).select("+refreshToken");
 
   if (!user || user.refreshToken !== refreshToken) {
     return next(new AppError("Invalid refresh token!", 403));
@@ -358,7 +358,7 @@ export const refreshToken = catchAsync(async (req, res, next) => {
 
 export const forgotPassword = catchAsync(async (req, res, next) => {
   // 1) Get user based on POSTed email
-  const user = await User.findOne({ email: req.body.email });
+  const user = await UserModel.findOne({ email: req.body.email });
 
   authenticator.options = { step: 90 };
 
@@ -402,7 +402,7 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
 });
 
 export const resendOtp = catchAsync(async (req, res, next) => {
-  const user = await User.findOne({ email: req.body.email });
+  const user = await UserModel.findOne({ email: req.body.email });
 
   const { email } = req.body;
 
@@ -456,7 +456,7 @@ export const resetPassword = catchAsync(async (req, res, next) => {
     return next(new AppError("OTP is null. Please enter OTP!", 400));
   }
 
-  const user = await User.findOne({
+  const user = await UserModel.findOne({
     passwordResetToken: hashedToken,
     passwordResetExpires: { $gt: Date.now() },
   });
@@ -500,7 +500,7 @@ export const resetPassword = catchAsync(async (req, res, next) => {
 export const updatePassword = catchAsync(async (req, res, next) => {
   // 1) Get user from collection
   const idUser = req.user?.id || "";
-  const user = await User.findById(idUser).select("+password");
+  const user = await UserModel.findById(idUser).select("+password");
 
   // 2) Check if POSTed current password is correct
   if (

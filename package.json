@@ -3,8 +3,9 @@
   "description": "Restaurant Booking",
   "main": "index.ts",
   "scripts": {
-    "start": "cross-env NODE_ENV=development nodemon server.ts",
-    "start:prod": "cross-env NODE_ENV=production nodemon server.ts",
+    "build": "tsc",
+    "dev": "cross-env NODE_ENV=development nodemon server.ts",
+    "start": "NODE_ENV=production node dist/server.js",
     "debug": "ndb server.ts"
   },
   "author": "Dom Nguyen",
@@ -59,7 +60,7 @@
     "@types/pug": "^2.0.10",
     "@types/validator": "^13.12.2",
     "cross-env": "^7.0.3",
-    "eslint": "^9.20.1",
+    "eslint": "^8.57.1",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-import": "^2.31.0",
