@@ -530,7 +530,7 @@ export const googleAuthCallback = catchAsync(
       }
 
       return res.redirect(
-        `${process.env.FRONTEND_URL}/?accessToken=${accessToken}&refreshToken=${refreshToken}`
+        `${process.env.NODE_ENV === "production" ? process.env.FRONTEND_URL_PROD : process.env.FRONTEND_URL}/?accessToken=${accessToken}&refreshToken=${refreshToken}`
       );
     } catch (error) {
       return res.status(500).json({ message: "Internal Server Error" });
