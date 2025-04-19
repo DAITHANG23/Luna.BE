@@ -529,8 +529,11 @@ export const googleAuthCallback = catchAsync(
         return res.status(400).json({ message: "Authentication failed" });
       }
 
+      const redirectUrl =
+        process.env.FRONTEND_URL_PROD || process.env.FRONTEND_URL;
+
       return res.redirect(
-        `${process.env.NODE_ENV === "production" ? process.env.FRONTEND_URL_PROD : process.env.FRONTEND_URL}/?accessToken=${accessToken}&refreshToken=${refreshToken}`
+        `${redirectUrl}/?accessToken=${accessToken}&refreshToken=${refreshToken}`
       );
     } catch (error) {
       return res.status(500).json({ message: "Internal Server Error" });
