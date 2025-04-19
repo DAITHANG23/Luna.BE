@@ -181,7 +181,7 @@ export const verifyOtp = catchAsync(async (req, res, next) => {
 
   const newUser = await UserModel.create(userBody);
 
-  const url = "http://localhost:3000/login";
+  const url = `${process.env.FRONTEND_URL}/login`;
 
   await new Email(newUser, url).sendWelcome();
 
@@ -237,7 +237,7 @@ export const logout = catchAsync(
     if (process.env.NODE_ENV === "production") {
       res.clearCookie("jwt", {
         httpOnly: true,
-        secure: false,
+        secure: true,
         sameSite: "none",
       });
     }
@@ -379,7 +379,7 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
 
   // 3) Send it to user's email
   try {
-    const resetURL = `http://localhost:3000/reset-password/${resetToken}`;
+    const resetURL = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
 
     await new Email(user, resetURL, otp).sendPasswordReset();
 
@@ -530,7 +530,7 @@ export const googleAuthCallback = catchAsync(
       }
 
       return res.redirect(
-        `http://localhost:3000/?accessToken=${accessToken}&refreshToken=${refreshToken}`
+        `${process.env.FRONTEND_URL}/?accessToken=${accessToken}&refreshToken=${refreshToken}`
       );
     } catch (error) {
       return res.status(500).json({ message: "Internal Server Error" });
