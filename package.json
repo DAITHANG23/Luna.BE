@@ -4,6 +4,7 @@
   "main": "index.ts",
   "scripts": {
     "build": "tsc",
+    "postbuild": "copyfiles views/**/* dist",
     "dev": "cross-env NODE_ENV=development nodemon server.ts",
     "start": "NODE_ENV=production node dist/server.js",
     "debug": "ndb server.ts"
