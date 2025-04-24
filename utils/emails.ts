@@ -55,7 +55,10 @@ const Email = class Email {
       }
     );
 
-    console.log("html:", html);
+    console.log(
+      "templatePath:",
+      path.join(__dirname, "../views/email", `${template}.pug`)
+    );
 
     // 2) Define email options
     const mailOptions = {
