@@ -105,10 +105,10 @@ export interface IConcept extends Document {
   timeSlot: TimeSlotType;
   dishes: Array<Dish>;
   type: string;
-  totalRatings: number;
+  avgRatings: number;
 }
 
 export interface MulterFiles {
   imageCover: [File];
-  images: [File, File, File];
+  images: Array<File>;
 }

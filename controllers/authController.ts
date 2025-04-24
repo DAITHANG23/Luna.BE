@@ -95,6 +95,12 @@ export const signup = catchAsync(async (req, res, next) => {
     address,
   } = req.body;
 
+  const user = await UserModel.findOne({ email });
+
+  if (user) {
+    return next(new AppError("Email is existed!", 401));
+  }
+
   const requiredFields: Record<string, any> = {
     fullName,
     email,
