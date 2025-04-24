@@ -37,7 +37,7 @@ app.options(
   cors({ origin: `${process.env.FRONTEND_URL}`, credentials: true })
 );
 // app.options('/api/v1/tours/:id', cors());
-
+app.set("trust proxy", 1);
 app.use(
   session({
     store: new RedisStore({
