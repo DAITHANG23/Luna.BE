@@ -29,16 +29,17 @@ const Email = class Email {
   }
 
   newTransport() {
-    if (process.env.NODE_ENV === "production") {
-      // Sendgrid
-      return nodemailer.createTransport({
-        service: "SendGrid",
-        auth: {
-          user: process.env.SENDGRID_USERNAME,
-          pass: process.env.SENDGRID_PASSWORD,
-        },
-      } as SMTPTransport.Options);
-    }
+    // if (process.env.NODE_ENV === "production") {
+    //   // Mailgun
+    //   return nodemailer.createTransport({
+    //     host: process.env.EMAIL_HOST,
+    //     port: process.env.EMAIL_PORT,
+    //     auth: {
+    //       user: process.env.EMAIL_USERNAME,
+    //       pass: process.env.EMAIL_PASSWORD,
+    //     },
+    //   } as SMTPTransport.Options);
+    // }
 
     return nodemailer.createTransport({
       host: process.env.EMAIL_HOST,
