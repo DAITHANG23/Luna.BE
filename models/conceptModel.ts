@@ -43,7 +43,7 @@ const conceptSchema = new mongoose.Schema<IConcept>({
     enum: ["HOTPOT", "BBQ", "JAPANESE", "STEAK HOUSE", "OTHER"],
     required: [true, "Concept must be have type."],
   },
-  totalRatings: {
+  avgRatings: {
     type: Number,
     default: 4.5,
   },
