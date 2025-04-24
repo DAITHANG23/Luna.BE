@@ -25,22 +25,10 @@ const Email = class Email {
     this.firstName = user.fullName?.split(" ")[0] || "";
     this.url = url || "";
     this.otp = otp || "";
-    this.from = `Dom Nguyen <${process.env.EMAIL_FROM}>`;
+    this.from = `Domique Fusion <${process.env.EMAIL_FROM}>`;
   }
 
   newTransport() {
-    // if (process.env.NODE_ENV === "production") {
-    //   // Mailgun
-    //   return nodemailer.createTransport({
-    //     host: process.env.EMAIL_HOST,
-    //     port: process.env.EMAIL_PORT,
-    //     auth: {
-    //       user: process.env.EMAIL_USERNAME,
-    //       pass: process.env.EMAIL_PASSWORD,
-    //     },
-    //   } as SMTPTransport.Options);
-    // }
-
     return nodemailer.createTransport({
       host: process.env.EMAIL_HOST,
       port: process.env.EMAIL_PORT,
@@ -48,6 +36,8 @@ const Email = class Email {
         user: process.env.EMAIL_USERNAME,
         pass: process.env.EMAIL_PASSWORD,
       },
+      logger: true, // bật log
+      debug: true,
     } as SMTPTransport.Options);
   }
 
@@ -71,7 +61,12 @@ const Email = class Email {
     };
 
     // 3) Create a transport and send email
-    await this.newTransport().sendMail(mailOptions);
+    try {
+      await this.newTransport().sendMail(mailOptions);
+      console.log("✅ Email sent");
+    } catch (err) {
+      console.error("❌ Email send failed:", err);
+    }
   }
 
   async sendWelcome() {
