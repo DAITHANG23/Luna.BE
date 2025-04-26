@@ -1,23 +1,62 @@
+import { type } from "node:os";
+
 class APIFeatures {
   public query: any;
   private queryString: Record<string, any>;
+  private type: string;
 
   constructor(query: any, queryString: Record<string, any>) {
     this.query = query;
     this.queryString = queryString;
+    this.type = queryString.type;
   }
 
   filter() {
     const queryObj = { ...this.queryString };
-    const excludeFields = ["page", "sort", "limit", "fields"];
+    const excludeFields = ["page", "sort", "limit", "fields", "searchText"];
 
     excludeFields.forEach((el) => delete queryObj[el]);
 
+    const deepConvertNumber = (obj: Record<string, any>) => {
+      for (const key in obj) {
+        if (
+          typeof obj[key] === "object" &&
+          obj[key] !== null &&
+          !Array.isArray(obj[key])
+        ) {
+          deepConvertNumber(obj[key]);
+        } else if (typeof obj[key] === "string" && !isNaN(Number(obj[key]))) {
+          obj[key] = Number(obj[key]);
+        }
+      }
+    };
+
+    deepConvertNumber(queryObj);
+
     let queryStr = JSON.stringify(queryObj);
-    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `${match}`);
+    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
 
-    this.query.find(JSON.parse(queryStr));
+    let filterObj = JSON.parse(queryStr);
 
+    if (this.type === "all") {
+      filterObj = {
+        ...filterObj,
+        type: ["other", "hotpot", "japanese", "bbq", "steakhouse"],
+      };
+    }
+
+    if (this.queryString.searchText) {
+      filterObj = {
+        ...filterObj,
+        $or: [
+          { name: { $regex: this.queryString.searchText, $options: "i" } },
+          { type: { $regex: this.queryString.searchText, $options: "i" } },
+          { address: { $regex: this.queryString.searchText, $options: "i" } },
+        ],
+      };
+    }
+
+    this.query = this.query.find(filterObj);
     return this;
   }
 

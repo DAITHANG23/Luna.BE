@@ -15,6 +15,7 @@ import passport from "./utils/passport";
 import session from "express-session";
 import AppError from "./utils/appError";
 import redis from "./utils/redis";
+import qs from "qs";
 import { RedisStore } from "connect-redis";
 const xss = require("xss-clean");
 import hpp from "hpp";
@@ -38,11 +39,14 @@ app.options(
 );
 // app.options('/api/v1/tours/:id', cors());
 app.set("trust proxy", 1);
+app.set("query parser", (str: any) =>
+  qs.parse(str, { arrayLimit: 100, allowDots: true })
+);
 app.use(
   session({
     store: new RedisStore({
       client: redis,
-      prefix: "sess:", // optional
+      prefix: "sess:",
     }),
     secret: process.env.SESSION_SECRET || "",
     resave: false,
@@ -69,7 +73,7 @@ if (process.env.NODE_ENV === "development") {
 }
 
 const rateLimitHandler: Options["handler"] = (req, res, _next) => {
-  res.setHeader("Retry-After", "60"); // Thêm header Retry-After
+  res.setHeader("Retry-After", "60");
   res.status(429).json({
     status: "fail",
     error: {
