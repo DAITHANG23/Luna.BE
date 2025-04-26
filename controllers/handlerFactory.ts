@@ -74,7 +74,7 @@ export const getAll = <T extends Document>(Model: Model<T>) =>
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     // To allow for nested GET reviews on tour (hack)
     let filter = {};
-    if (req.params.tourId) filter = { tour: req.params.tourId };
+    if (req.params.conceptId) filter = { concept: req.params.conceptId };
 
     const features = new APIFeatures(Model.find(filter), req.query)
       .filter()
