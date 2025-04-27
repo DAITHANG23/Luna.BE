@@ -245,6 +245,8 @@ export const logout = catchAsync(
         httpOnly: true,
         secure: true,
         sameSite: "none",
+        path: "/",
+        domain: process.env.FRONTEND_URL_PROD,
       });
     }
 
@@ -290,32 +292,31 @@ export const isLoggedIn = async (
   res: Response,
   next: NextFunction
 ) => {
-  if (req.cookies.jwt) {
-    try {
-      // 1) verify token
+  const token =
+    process.env.NODE_ENV === "production"
+      ? req.cookies.jwt
+      : req.body.refreshToken;
 
-      const decoded = await verifyToken(
-        req.cookies.jwt,
-        process.env.JWT_SECRET as string
-      );
+  if (!token) {
+    return next();
+  }
 
-      // 2) Check if user still exists
-      const currentUser = await UserModel.findById(decoded.id);
-      if (!currentUser) {
-        return next();
-      }
+  try {
+    const decoded = await verifyToken(token, process.env.JWT_SECRET as string);
 
-      // 3) Check if user changed password after the token was issued
-      if (currentUser.changedPasswordAfter(decoded.iat)) {
-        return next();
-      }
-
-      // THERE IS A LOGGED IN USER
-      res.locals.user = currentUser;
-      return next();
-    } catch (err) {
+    const currentUser = await UserModel.findById(decoded.id);
+    if (!currentUser) {
       return next();
     }
+
+    if (currentUser.changedPasswordAfter(decoded.iat)) {
+      return next();
+    }
+
+    res.locals.user = currentUser;
+    return next();
+  } catch (err) {
+    return next();
   }
   next();
 };
