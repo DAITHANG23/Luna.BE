@@ -244,9 +244,8 @@ export const logout = catchAsync(
       res.clearCookie("jwt", {
         httpOnly: true,
         secure: true,
-        sameSite: "none",
         path: "/",
-        domain: process.env.FRONTEND_URL_PROD,
+        domain: ".vercel.app",
       });
     }
 
