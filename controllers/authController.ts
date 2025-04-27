@@ -65,8 +65,8 @@ const createSendToken = async (
   if (process.env.NODE_ENV === "production") {
     res.cookie("jwt", refreshToken, {
       expires: new Date(Date.now() + timeExpire * 24 * 60 * 60 * 1000),
-      httpOnly: true,
-      secure: true,
+      // httpOnly: true,
+      // secure: true,
       sameSite: "none",
     });
   }
