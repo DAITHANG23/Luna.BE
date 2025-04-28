@@ -5,6 +5,8 @@ type Gender = "male" | "female";
 export interface User extends Document {
   googleId: string;
   fullName: string;
+  lastName: string;
+  firstName: string;
   email: string;
   password: string;
   passwordConfirm?: string;

@@ -7,6 +7,8 @@ import { User } from "../@types/index";
 const userSchema = new mongoose.Schema<User>(
   {
     googleId: { type: String },
+    firstName: { type: String },
+    lastName: { type: String },
     fullName: {
       type: String,
       require: [true, "Please provider name."],
