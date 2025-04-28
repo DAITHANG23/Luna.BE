@@ -60,14 +60,7 @@ app.use(
 );
 app.use(passport.initialize());
 app.use(passport.session());
-app.use((req, res, next) => {
-  res.header(
-    "Access-Control-Allow-Origin",
-    "https://domique-fusion.vercel.app"
-  );
-  res.header("Access-Control-Allow-Credentials", "true");
-  next();
-});
+
 app.get("/", (req, res) => {
   res.status(200).send("Hello from the server side!");
 });

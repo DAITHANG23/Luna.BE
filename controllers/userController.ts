@@ -102,7 +102,9 @@ export const updateMe = catchAsync(
       "address",
       "numberPhone",
       "dateOfBirth",
-      "gender"
+      "gender",
+      "lastName",
+      "firstName"
     );
 
     // 3) Nếu có file ảnh, xử lý upload ảnh lên Cloudinary
