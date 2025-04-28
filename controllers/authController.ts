@@ -65,8 +65,8 @@ const createSendToken = async (
   if (process.env.NODE_ENV === "production") {
     res.cookie("jwt", refreshToken, {
       expires: new Date(Date.now() + timeExpire * 24 * 60 * 60 * 1000),
-      // httpOnly: true,
-      // secure: true,
+      httpOnly: true,
+      secure: true,
       sameSite: "none",
     });
   }
@@ -241,12 +241,11 @@ export const logout = catchAsync(
     }
 
     if (process.env.NODE_ENV === "production") {
-      res.clearCookie("jwt", {
+      res.cookie("jwt", "", {
+        expires: new Date(Date.now() + 60 * 1000),
         httpOnly: true,
         secure: true,
         sameSite: "none",
-        path: "/",
-        domain: ".vercel.app",
       });
     }
 
