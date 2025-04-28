@@ -68,6 +68,8 @@ const createSendToken = async (
       httpOnly: true,
       secure: true,
       sameSite: "none",
+      domain: ".domique-fusion.vercel.app",
+      path: "/",
     });
   }
 
@@ -245,6 +247,7 @@ export const logout = catchAsync(
         httpOnly: true,
         secure: true,
         sameSite: "none",
+        domain: ".domique-fusion.vercel.app",
         path: "/",
       });
     }
