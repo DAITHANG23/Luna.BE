@@ -241,11 +241,11 @@ export const logout = catchAsync(
     }
 
     if (process.env.NODE_ENV === "production") {
-      res.cookie("jwt", "", {
-        expires: new Date(Date.now() + 60 * 1000),
+      res.clearCookie("jwt", {
         httpOnly: true,
         secure: true,
         sameSite: "none",
+        path: "/",
       });
     }
 
