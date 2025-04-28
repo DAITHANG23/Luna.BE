@@ -62,14 +62,13 @@ const createSendToken = async (
 
   const timeExpire = Number(process.env.REFRESH_TOKEN_EXPIRED_IN);
 
+  // when deploy vps will use this code
   if (process.env.NODE_ENV === "production") {
     res.cookie("jwt", refreshToken, {
       expires: new Date(Date.now() + timeExpire * 24 * 60 * 60 * 1000),
       httpOnly: true,
       secure: true,
       sameSite: "none",
-      domain: "domique-fusion.vercel.app",
-      path: "/",
     });
   }
 
@@ -241,16 +240,16 @@ export const logout = catchAsync(
         { new: true }
       );
     }
-
-    if (process.env.NODE_ENV === "production") {
-      res.clearCookie("jwt", {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-        domain: "domique-fusion.vercel.app",
-        path: "/",
-      });
-    }
+    // when deploy vercel will use this code
+    // if (process.env.NODE_ENV === "production") {
+    //   res.clearCookie("jwt", {
+    //     httpOnly: true,
+    //     secure: true,
+    //     sameSite: "none",
+    //     domain: "domique-fusion.vercel.app",
+    //     path: "/",
+    //   });
+    // }
 
     res.status(200).json({ status: "success", message: "Logged out" });
   }
@@ -294,11 +293,11 @@ export const isLoggedIn = async (
   res: Response,
   next: NextFunction
 ) => {
-  const token =
-    process.env.NODE_ENV === "production"
-      ? req.cookies.jwt
-      : req.body.refreshToken;
-
+  // const token =
+  //   process.env.NODE_ENV === "production"
+  //     ? req.cookies.jwt
+  //     : req.body.refreshToken;
+  const token = req.body.refreshToken;
   if (!token) {
     return next();
   }
@@ -338,13 +337,15 @@ export const restrictTo = (...roles: any) => {
 };
 
 export const refreshToken = catchAsync(async (req, res, next) => {
-  let refreshToken;
+  // let refreshToken;
 
-  if (process.env.NODE_ENV === "production") {
-    refreshToken = req.cookies.jwt;
-  } else {
-    refreshToken = req.body.refreshToken;
-  }
+  // if (process.env.NODE_ENV === "production") {
+  //   refreshToken = req.cookies.jwt;
+  // } else {
+  //   refreshToken = req.body.refreshToken;
+  // }
+
+  const refreshToken = req.body.refreshToken;
 
   if (!refreshToken) return next(new AppError("Refresh token missing!", 401));
 
