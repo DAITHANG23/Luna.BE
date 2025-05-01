@@ -4,6 +4,7 @@ import validator from "validator";
 import bcrypt from "bcryptjs";
 import dayjs from "dayjs";
 import { User } from "../@types/index";
+import { Schema } from "mongoose";
 const userSchema = new mongoose.Schema<User>(
   {
     googleId: { type: String },
@@ -99,6 +100,16 @@ const userSchema = new mongoose.Schema<User>(
       type: String,
       require: [true, "Please provide birth of date."],
       default: "1997-05-23",
+    },
+    favorites: {
+      type: [{ type: Schema.Types.ObjectId, ref: "Concept", required: true }],
+      validate: {
+        validator: function (v) {
+          // Nếu không phải customer mà lại có favorites => sai
+          return this.role === "customer" || v.length === 0;
+        },
+        message: "Only customers can have favorites",
+      },
     },
     passwordConfirm: {
       type: String,

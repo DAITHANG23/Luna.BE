@@ -15,6 +15,7 @@ export interface User extends Document {
   avatarId?: string;
   avatarUrl: string;
   dateOfBirth: string;
+  favorites: Array<Types.ObjectId>;
   numberPhone: string;
   role: string;
   refreshToken?: string;

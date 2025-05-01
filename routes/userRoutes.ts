@@ -24,6 +24,8 @@ import {
   createUser,
   updateUser,
   deleteUser,
+  favoritesConcepts,
+  deleteFavoriteConcept,
   // singleUpload,
 } from "../controllers/userController";
 
@@ -51,6 +53,8 @@ router.patch(
   resizeUserPhoto,
   updateMe
 );
+router.post("/favorites", favoritesConcepts);
+router.delete("/deleteFavoriteConcept", deleteFavoriteConcept);
 router.delete("/deleteMe", deleteMe);
 
 router.use(restrictTo("admin, restaurantManager, conceptManager"));
