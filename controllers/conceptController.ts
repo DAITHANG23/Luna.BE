@@ -10,7 +10,8 @@ import {
   getOne,
   updateOne,
 } from "./handlerFactory";
-import ConceptRestaurant from "../models/conceptModel";
+import ConceptRestaurantModel from "../models/conceptModel";
+import UserModel from "../models/userModel";
 
 const multerStorage = multer.memoryStorage();
 
@@ -88,15 +89,35 @@ export const aliasTopConcept = (
   next();
 };
 
-export const getAllConcepts = getAll(ConceptRestaurant);
-export const getConcept = getOne(ConceptRestaurant, { path: "reviews" });
-export const createConcept = createOne(ConceptRestaurant);
-export const updateConcept = updateOne(ConceptRestaurant);
-export const deleteConcept = deleteOne(ConceptRestaurant);
+export const getFavoriteConcepts = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.user?.id || "";
+
+    if (!userId || typeof userId !== "string") {
+      return res.status(400).json({ message: "Invalid or missing userId" });
+    }
+    const user = await UserModel.findById(userId)
+      .select("favorites")
+      .populate("favorites");
+    const favoriteConceptsData = user?.favorites || [];
+
+    res.status(200).json({
+      status: "Success",
+      data: {
+        data: favoriteConceptsData,
+      },
+    });
+  }
+);
+export const getAllConcepts = getAll(ConceptRestaurantModel);
+export const getConcept = getOne(ConceptRestaurantModel, { path: "reviews" });
+export const createConcept = createOne(ConceptRestaurantModel);
+export const updateConcept = updateOne(ConceptRestaurantModel);
+export const deleteConcept = deleteOne(ConceptRestaurantModel);
 
 export const getConceptStats = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const stats = await ConceptRestaurant.aggregate([
+    const stats = await ConceptRestaurantModel.aggregate([
       {
         $match: { ratingsAverage: { $gte: 4.5 } },
       },

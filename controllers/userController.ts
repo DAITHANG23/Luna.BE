@@ -12,6 +12,8 @@ import {
 import { uploadSingleImage } from "../utils/uploadImage";
 import cloudinary from "cloudinary";
 import UserModel from "../models/userModel";
+import ConceptRestaurantModel from "../models/conceptModel";
+import mongoose, { Types } from "mongoose";
 
 // const multerStorage = multer.diskStorage({
 //   destination: (req, file, cb) => {
@@ -148,6 +150,58 @@ export const updateMe = catchAsync(
       data: {
         user: updatedUser,
       },
+    });
+    next();
+  }
+);
+
+export const favoritesConcepts = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { idConcept, userId } = req.body;
+
+    const user = await UserModel.findOne({ _id: userId });
+    if (!user) {
+      return next(new AppError("Token is invalid or has expired", 400));
+    }
+
+    if (user.role !== "customer") {
+      return next(new AppError("Only customers can have favorites", 400));
+    }
+    if (!user.favorites.includes(idConcept)) {
+      user.favorites.push(new mongoose.Types.ObjectId(idConcept as string));
+      await user.save();
+    }
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        user,
+      },
+    });
+  }
+);
+
+export const deleteFavoriteConcept = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { idConcept, userId } = req.body;
+
+    const user = await UserModel.findOne({ _id: userId });
+    if (!user) {
+      return next(new AppError("Token is invalid or has expired", 400));
+    }
+
+    if (user.role !== "customer") {
+      return next(new AppError("Only customers can have favorites", 400));
+    }
+
+    if (user.favorites.some((fav) => fav.equals(idConcept))) {
+      user.favorites = user.favorites.filter((fav) => !fav.equals(idConcept));
+      await user.save();
+    }
+
+    res.status(204).json({
+      status: "success",
+      data: null,
     });
   }
 );

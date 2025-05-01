@@ -49,6 +49,6 @@ const conceptSchema = new mongoose.Schema<IConcept>({
   },
 });
 
-const ConceptRestaurant = mongoose.model("Concept", conceptSchema);
+const ConceptRestaurantModel = mongoose.model("Concept", conceptSchema);
 
-export default ConceptRestaurant;
+export default ConceptRestaurantModel;

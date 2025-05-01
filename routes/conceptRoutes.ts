@@ -5,6 +5,7 @@ import {
   deleteConcept,
   getAllConcepts,
   getConcept,
+  getFavoriteConcepts,
   resizeConceptImages,
   updateConcept,
   uploadConceptImages,
@@ -16,6 +17,8 @@ router
   .route("/")
   .get(getAllConcepts)
   .post(protect, restrictTo("admin"), createConcept);
+
+router.get("/favoriteConcepts", protect, getFavoriteConcepts);
 
 router
   .route("/:id")
