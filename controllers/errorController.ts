@@ -61,7 +61,7 @@ const sendErrorProd = (err: AppError, req: Request, res: Response) => {
         status: err.status,
         error: err,
         message: err.message,
-        stack: err.stack,
+        name: err.name,
       });
     }
     // B) Programming or other unknown error: don't leak error details
