@@ -59,9 +59,7 @@ const sendErrorProd = (err: AppError, req: Request, res: Response) => {
     if (err.isOperational) {
       return res.status(err.statusCode).json({
         status: err.status,
-        error: err,
         message: err.message,
-        stack: err.stack,
       });
     }
     // B) Programming or other unknown error: don't leak error details
@@ -104,7 +102,7 @@ const errController = (
   if (process.env.NODE_ENV === "development") {
     sendErrorDev(err, req, res);
   } else if (process.env.NODE_ENV === "production") {
-    let error = { ...err };
+    let error = err;
     error.message = err.message;
 
     if (error.name === "CastError") error = handleCastErrorDB(error);
