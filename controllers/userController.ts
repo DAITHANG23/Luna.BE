@@ -181,6 +181,61 @@ export const favoritesConcepts = catchAsync(
   }
 );
 
+export const checkInConcept = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { idConcept, userId } = req.body;
+
+    const user = await UserModel.findOne({ _id: userId });
+    if (!user) {
+      return next(new AppError("Token is invalid or has expired", 400));
+    }
+
+    if (user.role !== "customer") {
+      return next(new AppError("Only customers can have favorites", 400));
+    }
+    if (!user.checkInConcepts.includes(idConcept)) {
+      user.checkInConcepts.push(
+        new mongoose.Types.ObjectId(idConcept as string)
+      );
+      await user.save();
+    }
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        user,
+      },
+    });
+  }
+);
+
+export const deleteCheckInConcept = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { idConcept, userId } = req.body;
+
+    const user = await UserModel.findOne({ _id: userId });
+    if (!user) {
+      return next(new AppError("Token is invalid or has expired", 400));
+    }
+
+    if (user.role !== "customer") {
+      return next(new AppError("Only customers can have favorites", 400));
+    }
+
+    if (user.checkInConcepts.some((fav) => fav.equals(idConcept))) {
+      user.checkInConcepts = user.checkInConcepts.filter(
+        (fav) => !fav.equals(idConcept)
+      );
+      await user.save();
+    }
+
+    res.status(204).json({
+      status: "success",
+      data: null,
+    });
+  }
+);
+
 export const deleteFavoriteConcept = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const { idConcept, userId } = req.body;

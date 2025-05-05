@@ -9,6 +9,7 @@ import {
   resizeConceptImages,
   updateConcept,
   uploadConceptImages,
+  getCheckInConcepts,
 } from "../controllers/conceptController";
 
 const router = express.Router();
@@ -19,7 +20,7 @@ router
   .post(protect, restrictTo("admin"), createConcept);
 
 router.get("/favoriteConcepts", protect, getFavoriteConcepts);
-
+router.get("/getCheckInConcepts", protect, getCheckInConcepts);
 router
   .route("/:id")
   .get(getConcept)
