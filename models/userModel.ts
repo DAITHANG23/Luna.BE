@@ -105,10 +105,18 @@ const userSchema = new mongoose.Schema<User>(
       type: [{ type: Schema.Types.ObjectId, ref: "Concept", required: true }],
       validate: {
         validator: function (v) {
-          // Nếu không phải customer mà lại có favorites => sai
           return this.role === "customer" || v.length === 0;
         },
         message: "Only customers can have favorites",
+      },
+    },
+    checkInConcepts: {
+      type: [{ type: Schema.Types.ObjectId, ref: "Concept", required: true }],
+      validate: {
+        validator: function (v) {
+          return this.role === "customer" || v.length === 0;
+        },
+        message: "Only customers can have check in concepts",
       },
     },
     passwordConfirm: {

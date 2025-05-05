@@ -109,6 +109,27 @@ export const getFavoriteConcepts = catchAsync(
     });
   }
 );
+
+export const getCheckInConcepts = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.user?.id || "";
+
+    if (!userId || typeof userId !== "string") {
+      return res.status(400).json({ message: "Invalid or missing userId" });
+    }
+    const user = await UserModel.findById(userId)
+      .select("checkInConcepts")
+      .populate("checkInConcepts");
+    const checkInConceptsData = user?.checkInConcepts || [];
+
+    res.status(200).json({
+      status: "Success",
+      data: {
+        data: checkInConceptsData,
+      },
+    });
+  }
+);
 export const getAllConcepts = getAll(ConceptRestaurantModel);
 export const getConcept = getOne(ConceptRestaurantModel, { path: "reviews" });
 export const createConcept = createOne(ConceptRestaurantModel);

@@ -26,6 +26,8 @@ import {
   deleteUser,
   favoritesConcepts,
   deleteFavoriteConcept,
+  deleteCheckInConcept,
+  checkInConcept,
   // singleUpload,
 } from "../controllers/userController";
 
@@ -55,6 +57,8 @@ router.patch(
 );
 router.post("/favorites", favoritesConcepts);
 router.delete("/deleteFavoriteConcept", deleteFavoriteConcept);
+router.post("/checkInConcept", checkInConcept);
+router.delete("/deleteCheckInConcept", deleteCheckInConcept);
 router.delete("/deleteMe", deleteMe);
 
 router.use(restrictTo("admin, restaurantManager, conceptManager"));
