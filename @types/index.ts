@@ -110,6 +110,7 @@ export interface IConcept extends Document {
   dishes: Array<Dish>;
   type: string;
   avgRatings: number;
+  reviews: Array<string>;
 }
 
 export interface MulterFiles {

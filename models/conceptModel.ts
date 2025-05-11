@@ -3,25 +3,37 @@ import { IConcept } from "../@types";
 
 const conceptSchema = new mongoose.Schema<IConcept>(
   {
-    name: { type: String, require: [true, "Please provider name."] },
+    name: {
+      type: String,
+      require: [true, "Please provider name."],
+      default: "Dom Fusion",
+    },
     description: {
       type: String,
       require: [true, "Please provider description."],
+      default: "",
     },
-    address: { type: String, require: [true, "Please provider address."] },
+    address: {
+      type: String,
+      require: [true, "Please provider address."],
+      default: "",
+    },
     images: [{ type: String }],
     conceptManager: {
       type: Schema.Types.ObjectId,
       ref: "User",
       required: [true, "Concept must have a manager"],
+      default: "67c038768dac9ae6b24d7d56",
     },
     totalProfit: {
       type: Number,
       require: [true, "Concept Restaurant must be have total profit."],
+      default: 1000000,
     },
     imageCover: {
       type: String,
       required: [true, "Restaurant must be have imageCover."],
+      default: "",
     },
     timeSlot: [
       {
@@ -32,22 +44,24 @@ const conceptSchema = new mongoose.Schema<IConcept>(
     ],
     dishes: [
       {
-        name: { type: String, required: true },
+        name: { type: String, required: true, default: "" },
         description: { type: String },
-        type: { type: String, required: true },
+        type: { type: String, required: true, default: "other" },
         image: { type: String },
-        price: { type: Number, required: true },
+        price: { type: Number, required: true, default: 1000000 },
       },
     ],
     type: {
       type: String,
-      enum: ["HOTPOT", "BBQ", "JAPANESE", "STEAK HOUSE", "OTHER"],
+      enum: ["hotpot", "bbq", "japanese", "steakHouse", "other"],
       required: [true, "Concept must be have type."],
+      default: "other",
     },
     avgRatings: {
       type: Number,
       default: 4.5,
     },
+    reviews: [{ type: String }],
   },
   {
     toJSON: { virtuals: true },
