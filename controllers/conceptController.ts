@@ -130,6 +130,43 @@ export const getCheckInConcepts = catchAsync(
     });
   }
 );
+
+export const conceptReviewPost = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { conceptId, score, content } = req.body;
+
+    if (!conceptId || typeof conceptId !== "string") {
+      return next(new AppError("Invalid or missing conceptId", 400));
+    }
+
+    const concept = await ConceptRestaurantModel.findOne({ _id: conceptId });
+    if (!concept) {
+      return next(new AppError("Not find concept", 404));
+    }
+
+    const oldCount = concept.reviews.length;
+    const oldAvg = concept.avgRatings || 0;
+
+    const newAvg = parseFloat(
+      ((oldAvg * oldCount + score) / (oldCount + 1)).toFixed(1)
+    );
+
+    const newConcept = await ConceptRestaurantModel.findByIdAndUpdate(
+      conceptId,
+      {
+        $push: { reviews: content },
+        avgRatings: newAvg,
+      },
+      { new: true }
+    );
+    res.status(200).json({
+      status: "Success",
+      data: {
+        data: newConcept,
+      },
+    });
+  }
+);
 export const getAllConcepts = getAll(ConceptRestaurantModel);
 export const getConcept = getOne(ConceptRestaurantModel, { path: "reviews" });
 export const createConcept = createOne(ConceptRestaurantModel);
