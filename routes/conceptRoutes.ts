@@ -10,6 +10,7 @@ import {
   updateConcept,
   uploadConceptImages,
   getCheckInConcepts,
+  conceptReviewPost,
 } from "../controllers/conceptController";
 
 const router = express.Router();
@@ -21,12 +22,13 @@ router
 
 router.get("/favoriteConcepts", protect, getFavoriteConcepts);
 router.get("/getCheckInConcepts", protect, getCheckInConcepts);
+router.post("/review", protect, conceptReviewPost);
 router
   .route("/:id")
   .get(getConcept)
   .patch(
     protect,
-    restrictTo("admin", "conceptManager"),
+    restrictTo("admin", "conceptManager", "customer"),
     uploadConceptImages,
     resizeConceptImages,
     updateConcept
