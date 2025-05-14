@@ -117,3 +117,9 @@ export interface MulterFiles {
   imageCover: [File];
   images: Array<File>;
 }
+
+export interface IDishItem extends Document {
+  image: string;
+  name: string;
+  price: number;
+}

@@ -54,7 +54,13 @@ export const getOne = <T extends Document>(
   popOptions?: PopulateOptions | (string | PopulateOptions)[]
 ) =>
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.params;
+
+    if (id.trim().length <= 0) {
+      return next(new AppError("Please provide id", 400));
+    }
     let query = Model.findById(req.params.id);
+
     if (popOptions) query = query.populate(popOptions);
     const doc = await query;
 
