@@ -44,10 +44,13 @@ const conceptSchema = new mongoose.Schema<IConcept>(
     ],
     dishes: [
       {
+        catelogy: { type: String },
+        items: [{ image: String, name: String, price: Number }],
         name: { type: String, required: true, default: "" },
         description: { type: String },
         type: { type: String, required: true, default: "other" },
         image: { type: String },
+        images: [{ type: String }],
         price: { type: Number, required: true, default: 1000000 },
       },
     ],
