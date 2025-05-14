@@ -22,7 +22,9 @@ router
 
 router.get("/favoriteConcepts", protect, getFavoriteConcepts);
 router.get("/getCheckInConcepts", protect, getCheckInConcepts);
+
 router.post("/review", protect, conceptReviewPost);
+
 router
   .route("/:id")
   .get(getConcept)
