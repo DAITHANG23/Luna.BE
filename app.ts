@@ -21,23 +21,27 @@ const xss = require("xss-clean");
 import hpp from "hpp";
 
 const app = express();
-
+const allowedOrigin =
+  process.env.NODE_ENV === "production"
+    ? process.env.FRONTEND_URL_PROD
+    : process.env.FRONTEND_URL;
 // 1) GLOBAL MIDDLEWARES
 // Implement CORS
-app.use(cors({ origin: `${process.env.FRONTEND_URL}`, credentials: true }));
-// Access-Control-Allow-Origin *
-// api.natours.com, front-end natours.com
-// app.use(
-//   cors({
-//     origin: "http://localhost:3000",
-//   })
-// );
+app.use(
+  cors({
+    origin: allowedOrigin,
+    credentials: true,
+  })
+);
 
 app.options(
-  "*",
-  cors({ origin: `${process.env.FRONTEND_URL}`, credentials: true })
+  "/*",
+  cors({
+    origin: allowedOrigin,
+    credentials: true,
+  })
 );
-// app.options('/api/v1/tours/:id', cors());
+
 app.set("trust proxy", 1);
 app.set("query parser", (str: any) =>
   qs.parse(str, { arrayLimit: 100, allowDots: true })
@@ -67,7 +71,6 @@ app.get("/", (req, res) => {
 
 app.use(helmet());
 
-// Development logging
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
@@ -85,7 +88,7 @@ const rateLimitHandler: Options["handler"] = (req, res, _next) => {
     message: "Too many requests, please try again later",
   });
 };
-// Limit requests from same API
+
 const limiter = rateLimit({
   windowMs: 1 * 60 * 1000,
   max: 30,
@@ -99,8 +102,8 @@ const limiter = rateLimit({
     },
     message: "Too many requests, please try again later",
   },
-  standardHeaders: true, // Thêm `RateLimit-*` headers vào response
-  legacyHeaders: false, // Ẩn `X-RateLimit-*` headers cũ
+  standardHeaders: true,
+  legacyHeaders: false,
   handler: rateLimitHandler,
 });
 app.use("/api", limiter);

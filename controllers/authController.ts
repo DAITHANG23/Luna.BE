@@ -28,7 +28,7 @@ const signAccessToken = (id: string) => {
   const payload = { userId: id };
 
   const optionsAccess: jwt.SignOptions = {
-    expiresIn: "1h",
+    expiresIn: "1m",
   };
 
   return jwt.sign(payload, secretKey, optionsAccess);
@@ -343,15 +343,13 @@ export const restrictTo = (...roles: any) => {
 };
 
 export const refreshToken = catchAsync(async (req, res, next) => {
-  // let refreshToken;
+  let refreshToken;
 
-  // if (process.env.NODE_ENV === "production") {
-  //   refreshToken = req.cookies.jwt;
-  // } else {
-  //   refreshToken = req.body.refreshToken;
-  // }
-
-  const refreshToken = req.body.refreshToken;
+  if (process.env.NODE_ENV === "production") {
+    refreshToken = req.cookies.jwt;
+  } else {
+    refreshToken = req.body.refreshToken;
+  }
 
   if (!refreshToken) return next(new AppError("Refresh token missing!", 401));
 
