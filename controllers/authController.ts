@@ -28,7 +28,7 @@ const signAccessToken = (id: string) => {
   const payload = { userId: id };
 
   const optionsAccess: jwt.SignOptions = {
-    expiresIn: "1m",
+    expiresIn: "1h",
   };
 
   return jwt.sign(payload, secretKey, optionsAccess);
@@ -62,6 +62,8 @@ const createSendToken = async (
 
   const timeExpire = Number(process.env.REFRESH_TOKEN_EXPIRED_IN);
 
+  const isProd = process.env.NODE_ENV === "production";
+
   // when deploy vps will use this code
   if (process.env.NODE_ENV === "production") {
     res.cookie("jwt", refreshToken, {
@@ -75,14 +77,19 @@ const createSendToken = async (
   user.password = undefined;
   await UserModel.findByIdAndUpdate(user._id, { refreshToken });
 
-  res.status(statusCode).json({
+  const responseData: any = {
     status: "success",
     accessToken,
-    refreshToken,
     data: {
       user,
     },
-  });
+  };
+
+  if (!isProd) {
+    responseData.refreshToken = refreshToken;
+  }
+
+  res.status(statusCode).json(responseData);
 };
 
 export const signup = catchAsync(async (req, res, next) => {
