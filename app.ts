@@ -35,7 +35,7 @@ app.use(
 );
 
 app.options(
-  "*",
+  "/*",
   cors({
     origin: allowedOrigin,
     credentials: true,
