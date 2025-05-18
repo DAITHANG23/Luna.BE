@@ -63,14 +63,21 @@ const createSendToken = async (
   const timeExpire = Number(process.env.REFRESH_TOKEN_EXPIRED_IN);
 
   // when deploy vps will use this code
-  if (process.env.NODE_ENV === "production") {
-    res.cookie("jwt", refreshToken, {
-      expires: new Date(Date.now() + timeExpire * 24 * 60 * 60 * 1000),
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-    });
-  }
+  // if (process.env.NODE_ENV === "production") {
+  //   res.cookie("jwt", refreshToken, {
+  //     expires: new Date(Date.now() + timeExpire * 24 * 60 * 60 * 1000),
+  //     httpOnly: true,
+  //     secure: true,
+  //     sameSite: "none",
+  //   });
+  // }
+
+  res.cookie("jwt", refreshToken, {
+    httpOnly: true,
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    secure: process.env.NODE_ENV === "production", // dùng true nếu production (vì HTTPS)
+    expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+  });
 
   user.password = undefined;
   await UserModel.findByIdAndUpdate(user._id, { refreshToken });
@@ -351,7 +358,7 @@ export const refreshToken = catchAsync(async (req, res, next) => {
   //   refreshToken = req.body.refreshToken;
   // }
 
-  const refreshToken = req.body.refreshToken;
+  const refreshToken = req.cookies.jwt;
 
   if (!refreshToken) return next(new AppError("Refresh token missing!", 401));
 
