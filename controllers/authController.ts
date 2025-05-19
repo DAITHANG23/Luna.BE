@@ -248,15 +248,13 @@ export const logout = catchAsync(
       );
     }
     // when deploy vercel will use this code
-    // if (process.env.NODE_ENV === "production") {
-    //   res.clearCookie("jwt", {
-    //     httpOnly: true,
-    //     secure: true,
-    //     sameSite: "none",
-    //     domain: "domique-fusion.vercel.app",
-    //     path: "/",
-    //   });
-    // }
+    if (process.env.NODE_ENV === "production") {
+      res.clearCookie("jwt", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+      });
+    }
 
     res.status(200).json({ status: "success", message: "Logged out" });
   }
@@ -545,17 +543,32 @@ export const googleAuthCallback = catchAsync(
   async (req: Request, res: Response) => {
     try {
       const { user, accessToken, refreshToken } = req.user as any;
-
+      console.log("accessToken:", accessToken);
+      console.log("refreshToken:", refreshToken);
       if (!user || !accessToken) {
         return res.status(400).json({ message: "Authentication failed" });
       }
 
-      const redirectUrl =
-        process.env.FRONTEND_URL_PROD || process.env.FRONTEND_URL;
+      const isProd = process.env.NODE_ENV === "production";
 
-      return res.redirect(
-        `${redirectUrl}/?accessToken=${accessToken}&refreshToken=${refreshToken}`
-      );
+      const timeExpire = Number(process.env.REFRESH_TOKEN_EXPIRED_IN);
+
+      if (isProd) {
+        res.cookie("jwt", refreshToken, {
+          expires: new Date(Date.now() + timeExpire * 24 * 60 * 60 * 1000),
+          httpOnly: true,
+          secure: true,
+          sameSite: "none",
+        });
+      }
+
+      const redirectUrl = isProd
+        ? `${process.env.FRONTEND_URL_PROD}/?accessToken=${accessToken}`
+        : `${process.env.FRONTEND_URL}/?accessToken=${accessToken}&refreshToken=${refreshToken}`;
+
+      console.log("redirectUrl:", redirectUrl);
+
+      return res.redirect(redirectUrl);
     } catch (error) {
       return res.status(500).json({ message: "Internal Server Error" });
     }
