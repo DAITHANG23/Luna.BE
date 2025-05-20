@@ -102,7 +102,7 @@ const userSchema = new mongoose.Schema<User>(
       default: "1997-05-23",
     },
     favorites: {
-      type: [{ type: Schema.Types.ObjectId, ref: "Concept", required: true }],
+      type: [{ type: Schema.Types.ObjectId, ref: "Concept" }],
       validate: {
         validator: function (v) {
           return this.role === "customer" || v.length === 0;
@@ -111,7 +111,7 @@ const userSchema = new mongoose.Schema<User>(
       },
     },
     checkInConcepts: {
-      type: [{ type: Schema.Types.ObjectId, ref: "Concept", required: true }],
+      type: [{ type: Schema.Types.ObjectId, ref: "Concept" }],
       validate: {
         validator: function (v) {
           return this.role === "customer" || v.length === 0;
@@ -171,6 +171,16 @@ userSchema.pre("save", async function (next) {
 userSchema.pre(/^find/, function (this: Query<any, Document>, next) {
   this.setQuery({ ...this.getQuery(), active: { $ne: false } });
   next();
+});
+
+userSchema.set("toObject", {
+  transform: function (doc, ret) {
+    if (ret.role !== "customer") {
+      delete ret.favorites;
+      delete ret.checkInConcepts;
+    }
+    return ret;
+  },
 });
 
 userSchema.pre("save", function (next) {

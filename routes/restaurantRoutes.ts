@@ -10,6 +10,7 @@ import {
   //   resizeRestaurantImages,
   getDistances,
   getRestaurantsWithin,
+  getAllRestaurantsInConcept,
 } from "../controllers/restaurantController";
 
 import { protect, restrictTo } from "../controllers/authController";
@@ -36,6 +37,8 @@ router
   .route("/")
   .get(getAllRestaurants)
   .post(protect, restrictTo("admin", "conceptManager"), createRestaurant);
+
+router.get("/restaurantsOfConcept/:id", getAllRestaurantsInConcept);
 
 router
   .route("/:id")

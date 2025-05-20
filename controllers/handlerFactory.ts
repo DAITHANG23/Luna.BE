@@ -56,8 +56,8 @@ export const getOne = <T extends Document>(
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.params;
 
-    if (id.trim().length <= 0) {
-      return next(new AppError("Please provide id", 400));
+    if (!id || typeof id !== "string" || id.trim().length === 0) {
+      return next(new AppError("Please provide a valid id", 400));
     }
     let query = Model.findById(req.params.id);
 
