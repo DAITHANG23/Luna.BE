@@ -543,8 +543,7 @@ export const googleAuthCallback = catchAsync(
   async (req: Request, res: Response) => {
     try {
       const { user, accessToken, refreshToken } = req.user as any;
-      console.log("accessToken:", accessToken);
-      console.log("refreshToken:", refreshToken);
+
       if (!user || !accessToken) {
         return res.status(400).json({ message: "Authentication failed" });
       }
@@ -565,8 +564,6 @@ export const googleAuthCallback = catchAsync(
       const redirectUrl = isProd
         ? `${process.env.FRONTEND_URL_PROD}/?accessToken=${accessToken}`
         : `${process.env.FRONTEND_URL}/?accessToken=${accessToken}&refreshToken=${refreshToken}`;
-
-      console.log("redirectUrl:", redirectUrl);
 
       return res.redirect(redirectUrl);
     } catch (error) {

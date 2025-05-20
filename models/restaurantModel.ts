@@ -4,16 +4,16 @@ import { IRestaurant, Dish } from "../@types";
 const restaurantSchema = new mongoose.Schema<IRestaurant>(
   {
     name: { type: String, require: [true, "Please provider name."] },
-    description: {
-      type: String,
-      require: [true, "Please provider description."],
-    },
     address: { type: String, require: [true, "Please provider address."] },
     numberPhone: {
       type: String,
       require: [true, "Please provider number phone."],
     },
-    concept: { type: Schema.Types.ObjectId, ref: "Concept", required: true },
+    concept: {
+      type: Schema.Types.ObjectId,
+      ref: "ConceptRestaurantModel",
+      required: true,
+    },
     bookingManager: {
       type: Schema.Types.ObjectId,
       ref: "User",
@@ -25,50 +25,22 @@ const restaurantSchema = new mongoose.Schema<IRestaurant>(
         ref: "User",
       },
     ],
-    ratings: {
-      type: Number,
-      min: 0,
-      max: 5,
-      require: [true, "Restaurant must be have ratings."],
-    },
-    ratingsQuantity: {
-      type: Number,
-      required: [true, "Restaurant must be have ratings quantity."],
-    },
-    ratingsAverage: {
-      type: Number,
-      default: 4.5,
-      min: [1, "Rating must be above 1.0"],
-      max: [5, "Rating must be below 5.0"],
-      set: (val: number) => Math.round(val * 10) / 10,
-    },
-    priceDiscount: {
-      type: Number,
-      required: [true, "Restaurant must be have price discount."],
-    },
-    summary: {
-      type: String,
-      required: [true, "Restaurant must be have summary."],
-    },
     active: {
       type: Boolean,
       default: true,
     },
-    locations: [
-      {
-        type: {
-          type: String,
-          default: "Point",
-          enum: ["Point"],
-        },
-        coordinates: [Number],
-        address: String,
-        description: String,
+    location: {
+      lat: {
+        type: Number,
+        required: true,
       },
-    ],
-    voucher: {
-      type: String,
-      required: [true, "Restaurant must be have voucher."],
+      lng: {
+        type: Number,
+        required: true,
+      },
+      address: {
+        type: String,
+      },
     },
     profit: {
       type: Number,

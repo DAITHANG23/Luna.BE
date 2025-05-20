@@ -11,6 +11,8 @@ import {
   createOne,
 } from "../controllers/handlerFactory";
 import Restaurant from "../models/restaurantModel";
+import ConceptRestaurantModel from "../models/conceptModel";
+import mongoose from "mongoose";
 // const multerStorage = multer.memoryStorage();
 
 // const multerFilter = (
@@ -75,6 +77,34 @@ import Restaurant from "../models/restaurantModel";
 //     next();
 //   }
 // );
+
+export const getAllRestaurantsInConcept = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.params;
+    console.log("conceptId:", id);
+    if (!id || typeof id !== "string") {
+      return next(new AppError("Please provide id concept", 400));
+    }
+
+    const concept = await ConceptRestaurantModel.findById(id);
+
+    if (!concept) {
+      return next(new AppError("Concept is not exited !", 400));
+    }
+
+    const restaurants = await Restaurant.find({
+      concept: new mongoose.Types.ObjectId(id as string),
+    });
+
+    res.status(200).json({
+      status: "success",
+      results: restaurants.length,
+      data: {
+        restaurants,
+      },
+    });
+  }
+);
 
 export const getAllRestaurants = getAll(Restaurant);
 export const getRestaurant = getOne(Restaurant, { path: "reviews" });
