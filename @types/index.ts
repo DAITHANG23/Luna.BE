@@ -70,10 +70,9 @@ export interface TimeSlotType extends Document {
 }
 
 export interface ILocation {
-  type: "Point";
-  coordinate: number[];
+  lat: number;
+  lng: number;
   address?: string;
-  description?: string;
 }
 
 export interface IRestaurant extends Document {
@@ -89,7 +88,7 @@ export interface IRestaurant extends Document {
   priceDiscount: number;
   summary: string;
   active: boolean;
-  locations: Array<ILocation>;
+  location: ILocation;
   voucher: string;
   profit: number;
   totalSale: number;
