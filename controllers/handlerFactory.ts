@@ -78,7 +78,6 @@ export const getOne = <T extends Document>(
 
 export const getAll = <T extends Document>(Model: Model<T>) =>
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    // To allow for nested GET reviews on tour (hack)
     let filter = {};
     if (req.params.conceptId) filter = { concept: req.params.conceptId };
 

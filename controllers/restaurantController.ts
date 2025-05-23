@@ -82,6 +82,8 @@ export const getAllRestaurantsInConcept = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.params;
 
+    const searchText = req.query.searchText as string;
+
     if (!id || typeof id !== "string") {
       return next(new AppError("Please provide id concept", 400));
     }
@@ -92,9 +94,16 @@ export const getAllRestaurantsInConcept = catchAsync(
       return next(new AppError("Concept is not exited !", 400));
     }
 
-    const restaurants = await Restaurant.find({
-      concept: new mongoose.Types.ObjectId(id as string),
-    });
+    let filterObj: any = { concept: new mongoose.Types.ObjectId(id as string) };
+    if (searchText) {
+      filterObj.$or = [
+        { name: { $regex: searchText, $options: "i" } },
+        { type: { $regex: searchText, $options: "i" } },
+        { address: { $regex: searchText, $options: "i" } },
+      ];
+    }
+
+    const restaurants = await Restaurant.find(filterObj);
 
     res.status(200).json({
       status: "success",
