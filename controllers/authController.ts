@@ -337,6 +337,7 @@ export const restrictTo = (...roles: any) => {
   return (req: Request, res: Response, next: NextFunction) => {
     // roles ['admin', 'lead-guide']. role='user'
     const role = req.user?.role || "";
+    console.log("role:", role);
     if (!roles.includes(role)) {
       return next(
         new AppError("You do not have permission to perform this action", 403)
