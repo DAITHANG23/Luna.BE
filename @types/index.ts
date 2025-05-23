@@ -17,6 +17,7 @@ export interface User extends Document {
   dateOfBirth: string;
   favorites: Array<Types.ObjectId>;
   checkInConcepts: Array<Types.ObjectId>;
+  bookings: Array<Types.ObjectId>;
   numberPhone: string;
   role: string;
   refreshToken?: string;
@@ -121,4 +122,25 @@ export interface IDishItem extends Document {
   image: string;
   name: string;
   price: number;
+}
+
+export interface StatusHistory {
+  status: string;
+  updatedAt: Date;
+  updateBy: string;
+}
+export interface IBooking extends Document {
+  customer: Types.ObjectId;
+  restaurant: Types.ObjectId;
+  timeOfBooking: string;
+  timeSlot: string;
+  fullName: string;
+  numberPhone: string;
+  email: string;
+  peopleQuantity: string;
+  notes: string;
+  status: string;
+  createdAt: Date;
+  statusHistory?: Array<StatusHistory>;
+  _updateBy?: string;
 }

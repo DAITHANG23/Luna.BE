@@ -81,7 +81,7 @@ import mongoose from "mongoose";
 export const getAllRestaurantsInConcept = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.params;
-    console.log("conceptId:", id);
+
     if (!id || typeof id !== "string") {
       return next(new AppError("Please provide id concept", 400));
     }
