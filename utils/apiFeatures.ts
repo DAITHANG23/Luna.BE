@@ -1,5 +1,3 @@
-import { type } from "node:os";
-
 class APIFeatures {
   public query: any;
   private queryString: Record<string, any>;

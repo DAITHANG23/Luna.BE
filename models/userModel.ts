@@ -46,8 +46,7 @@ const userSchema = new mongoose.Schema<User>(
     },
     avatarUrl: {
       type: String,
-      default:
-        "https://res.cloudinary.com/dn797d3j3/image/upload/v1741875000/avatarUsers/defaultAvatar_g02o8c.jpg",
+      default: "",
     },
     gender: {
       type: String,

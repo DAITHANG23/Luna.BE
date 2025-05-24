@@ -95,6 +95,8 @@ const createSendToken = async (
 export const signup = catchAsync(async (req, res, next) => {
   const {
     fullName,
+    firstName,
+    lastName,
     email,
     numberPhone,
     password,
@@ -111,6 +113,8 @@ export const signup = catchAsync(async (req, res, next) => {
 
   const requiredFields: Record<string, any> = {
     fullName,
+    firstName,
+    lastName,
     email,
     numberPhone,
     password,
@@ -139,6 +143,8 @@ export const signup = catchAsync(async (req, res, next) => {
 
   const userBody = {
     fullName,
+    firstName,
+    lastName,
     email,
     numberPhone,
     password,
@@ -155,6 +161,8 @@ export const signup = catchAsync(async (req, res, next) => {
 export const verifyOtp = catchAsync(async (req, res, next) => {
   const {
     fullName,
+    firstName,
+    lastName,
     email,
     numberPhone,
     password,
@@ -168,6 +176,8 @@ export const verifyOtp = catchAsync(async (req, res, next) => {
 
   const userBody = {
     fullName,
+    firstName,
+    lastName,
     email,
     numberPhone,
     password,
