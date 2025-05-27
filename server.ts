@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 import dotenv = require("dotenv");
 import { Request, Response } from "express";
+import { createServer } from "http";
+import { Server } from "socket.io";
 
 dotenv.config({ path: "./.env" });
 
@@ -16,11 +18,34 @@ mongoose
   .catch((err) => console.log(err));
 
 const app = require("./app");
+const allowedOrigin =
+  process.env.NODE_ENV === "production"
+    ? process.env.FRONTEND_URL_PROD
+    : process.env.FRONTEND_URL;
+
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: allowedOrigin,
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});
+
+io.on("connection", (socket) => {
+  console.log("socket connected", socket.id);
+  socket.on("disconnect", () => {
+    console.log("user disconnected");
+  });
+});
+export { io };
+
 app.get("/favicon.ico", (_req: Request, res: Response) =>
   res.status(204).end()
 );
+
 const port = process.env.PORT || 8001;
-const server = app.listen(port, () => {
+const server = httpServer.listen(port, () => {
   console.log(`App running on the ${port}...`);
 });
 
