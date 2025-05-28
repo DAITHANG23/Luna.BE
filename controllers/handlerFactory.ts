@@ -5,6 +5,9 @@ import AppError from "../utils/appError";
 import APIFeatures from "../utils/apiFeatures";
 import ConceptRestaurantModel from "../models/conceptModel";
 import redis from "../utils/redis";
+import BookingModel from "../models/bookingModel";
+import { IBooking } from "../@types";
+import { emitBookingCreated } from "../socket/bookingRestaurant/BookingRestaurant";
 
 export const deleteOne = <T extends Document>(Model: Model<T>) =>
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {
@@ -43,6 +46,9 @@ export const createOne = <T extends Document>(Model: Model<T>) =>
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const doc = await Model.create(req.body);
 
+    if (Model.modelName === BookingModel.modelName) {
+      emitBookingCreated(doc);
+    }
     res.status(201).json({
       status: "success",
       data: {

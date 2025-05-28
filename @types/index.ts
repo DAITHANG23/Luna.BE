@@ -124,8 +124,17 @@ export interface IDishItem extends Document {
   price: number;
 }
 
+export type IStatusBooking =
+  | "PENDING"
+  | "CONFIRMED"
+  | "IN_PROGRESS"
+  | "COMPLETED"
+  | "CANCELLED_BY_USER"
+  | "CANCELLED_BY_ADMIN"
+  | "NO_SHOW";
+
 export interface StatusHistory {
-  status: string;
+  status: IStatusBooking;
   updatedAt: Date;
   updateBy: string;
 }
@@ -139,8 +148,23 @@ export interface IBooking extends Document {
   email: string;
   peopleQuantity: string;
   notes: string;
-  status: string;
+  status: IStatusBooking;
   createdAt: Date;
   statusHistory?: Array<StatusHistory>;
   _updateBy?: string;
+}
+
+export type ITypeNotification =
+  | "bookingCreated"
+  | "bookingConfirmed"
+  | "bookingCanceled";
+export interface INotification extends Document {
+  title: string;
+  message: string;
+  recipient: Types.ObjectId;
+  read: boolean;
+  createdAt: Date;
+  type: ITypeNotification;
+  // booking: Types.ObjectId;
+  restaurant: Types.ObjectId;
 }

@@ -7,6 +7,7 @@ import mongoSanitize from "express-mongo-sanitize";
 import userRouter from "./routes/userRoutes";
 import authRouter from "./routes/authRoutes";
 import bookingRouter from "./routes/bookingRoutes";
+import notificationRouter from "./routes/notificationRoutes";
 import restaurantRouter from "./routes/restaurantRoutes";
 import conceptRouter from "./routes/conceptRoutes";
 import compression from "compression";
@@ -138,6 +139,7 @@ app.use("/api/v1/users", userRouter);
 app.use("/api/v1/auth", authRouter);
 // app.use('/api/v1/reviews', reviewRouter);
 app.use("/api/v1/bookings", bookingRouter);
+app.use("/api/v1/notifications", notificationRouter);
 
 app.all("*", (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
