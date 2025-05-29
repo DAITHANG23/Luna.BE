@@ -8,6 +8,7 @@ import redis from "../utils/redis";
 import BookingModel from "../models/bookingModel";
 import { IBooking } from "../@types";
 import { emitBookingCreated } from "../socket/bookingRestaurant/BookingRestaurant";
+import NotificationModel from "../models/notificationModel";
 
 export const deleteOne = <T extends Document>(Model: Model<T>) =>
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {
@@ -89,6 +90,7 @@ export const getAll = <T extends Document>(Model: Model<T>) =>
     const hasFilterOrQuery =
       Object.keys(req.query).length > 0 || !!req.params.conceptId;
 
+    const idUser = req.user?._id;
     // Chỉ dùng cache nếu là ConceptModel và không có filter hay query param nào
     if (
       Model.modelName === ConceptRestaurantModel.modelName &&
@@ -106,6 +108,17 @@ export const getAll = <T extends Document>(Model: Model<T>) =>
           source: "redis",
         });
       }
+    }
+
+    if (Model.modelName === NotificationModel.modelName && idUser) {
+      const allNotifications = await NotificationModel.find({
+        recipient: idUser,
+      }).sort("-createdAt");
+      return res.status(200).json({
+        status: "success",
+        results: allNotifications?.length,
+        data: { data: allNotifications },
+      });
     }
 
     // Xử lý filter nếu có conceptId

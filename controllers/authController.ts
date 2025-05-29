@@ -358,33 +358,37 @@ export const restrictTo = (...roles: any) => {
   };
 };
 
-export const refreshToken = catchAsync(async (req, res, next) => {
-  let refreshToken;
+export const refreshToken = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    let refreshToken;
 
-  if (process.env.NODE_ENV === "production") {
-    refreshToken = req.cookies.jwt;
-  } else {
-    refreshToken = req.body.refreshToken;
+    if (process.env.NODE_ENV === "production") {
+      refreshToken = req.cookies.jwt;
+    } else {
+      refreshToken = req.body.refreshToken;
+    }
+
+    if (!refreshToken) return next(new AppError("Refresh token missing!", 401));
+
+    const secretKey = process.env.REFRESH_SECRET;
+    if (!secretKey)
+      return next(new AppError("Server error: Missing REFRESH_SECRET", 500));
+
+    const decoded = await verifyToken(refreshToken, secretKey);
+
+    const user = await UserModel.findById(decoded.userId).select(
+      "+refreshToken"
+    );
+
+    if (!user || user.refreshToken !== refreshToken) {
+      return next(new AppError("Invalid refresh token!", 403));
+    }
+
+    const accessToken = signAccessToken(user._id as string);
+
+    return res.json({ accessToken });
   }
-
-  if (!refreshToken) return next(new AppError("Refresh token missing!", 401));
-
-  const secretKey = process.env.REFRESH_SECRET;
-  if (!secretKey)
-    return next(new AppError("Server error: Missing REFRESH_SECRET", 500));
-
-  const decoded = await verifyToken(refreshToken, secretKey);
-
-  const user = await UserModel.findById(decoded.userId).select("+refreshToken");
-
-  if (!user || user.refreshToken !== refreshToken) {
-    return next(new AppError("Invalid refresh token!", 403));
-  }
-
-  const accessToken = signAccessToken(user._id as string);
-
-  return res.json({ accessToken });
-});
+);
 
 export const forgotPassword = catchAsync(async (req, res, next) => {
   // 1) Get user based on POSTed email
