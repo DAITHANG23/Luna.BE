@@ -167,4 +167,6 @@ export interface INotification extends Document {
   type: ITypeNotification;
   // booking: Types.ObjectId;
   restaurant: Types.ObjectId;
+  numberOfGuests: string;
+  bookingDate: string;
 }

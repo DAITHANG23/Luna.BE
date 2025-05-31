@@ -13,5 +13,5 @@ router.patch("/checkReadNotification", checkReadNotification);
 router
   .route("/:id")
   .get(getNotification)
-  .delete(protect, restrictTo("cutomer"), deleteNotification);
+  .delete(protect, restrictTo("customer"), deleteNotification);
 export default router;

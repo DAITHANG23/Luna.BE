@@ -1,9 +1,13 @@
 import NotificationModel from "../../models/notificationModel";
 import Restaurant from "../../models/restaurantModel";
 import { io } from "../../server";
+import dayjs from "dayjs";
 
 export const emitBookingCreated = async (formData: any) => {
   const restaurant = await Restaurant.findById(formData.restaurant);
+
+  const formatted = dayjs(formData.timeOfBooking).format("DD/MM/YYYY");
+  const dateBooking = `${formatted}  ${formData.timeSlot}`;
 
   const formDataBookingRestaurant = {
     recipient: formData.customer,
@@ -12,8 +16,10 @@ export const emitBookingCreated = async (formData: any) => {
     customer: formData.fullName,
     message: `Bạn đã đặt bàn thành công tại nhà hàng ${restaurant?.name || "Domique Fusion"}`,
     type: "bookingCreated",
+    bookingDate: dateBooking,
     createdAt: Date.now(),
     read: false,
+    numberOfGuests: formData.peopleQuantity,
   };
 
   io.emit("bookingCreated", formDataBookingRestaurant);
@@ -24,6 +30,8 @@ export const emitBookingCreated = async (formData: any) => {
 export const emitBookingConfirmed = async (formData: any) => {
   const restaurant = await Restaurant.findById(formData.restaurant);
 
+  const formatted = dayjs(formData.timeOfBooking).format("DD/MM/YYYY");
+  const dateBooking = `${formatted}  ${formData.timeSlot}`;
   const formDataBookingRestaurant = {
     recipient: formData.customer,
     restaurant: formData.restaurant,
@@ -33,6 +41,8 @@ export const emitBookingConfirmed = async (formData: any) => {
     type: "bookingConfirmed",
     createdAt: Date.now(),
     read: false,
+    numberOfGuests: formData.peopleQuantity,
+    bookingDate: dateBooking,
   };
 
   io.emit("bookingConfirmed", formDataBookingRestaurant);
@@ -55,6 +65,25 @@ export const emitBookingCanceled = async (formData: any) => {
   };
 
   io.emit("bookingCanceled", formDataBookingRestaurant);
+
+  await NotificationModel.create(formDataBookingRestaurant);
+};
+
+export const emitBookingReminder = async (formData: any) => {
+  const restaurant = await Restaurant.findById(formData.restaurant);
+
+  const formDataBookingRestaurant = {
+    recipient: formData.customer,
+    restaurant: formData.restaurant,
+    title: "Nhắc lịch đặt bàn",
+    customer: formData.fullName,
+    message: `Bạn có một lịch đặt bàn sắp tới tại ${restaurant?.name || "Domique Fusion"}.`,
+    type: "bookingReminder",
+    createdAt: Date.now(),
+    read: false,
+  };
+
+  io.emit("emitBookingReminder", formDataBookingRestaurant);
 
   await NotificationModel.create(formDataBookingRestaurant);
 };

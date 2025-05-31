@@ -30,5 +30,7 @@ export const checkReadNotification = catchAsync(
 );
 
 export const getAllNotifications = getAll(NotificationModel);
-export const getNotification = getOne(NotificationModel);
+export const getNotification = getOne(NotificationModel, {
+  path: "restaurant recipient",
+});
 export const deleteNotification = deleteOne(NotificationModel);

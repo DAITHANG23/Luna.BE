@@ -91,6 +91,8 @@ export const getAll = <T extends Document>(Model: Model<T>) =>
       Object.keys(req.query).length > 0 || !!req.params.conceptId;
 
     const idUser = req.user?._id;
+    const limit = parseInt(req.query.limit as string) || 100;
+    const offset = parseInt(req.query.offset as string) || 0;
     // Chỉ dùng cache nếu là ConceptModel và không có filter hay query param nào
     if (
       Model.modelName === ConceptRestaurantModel.modelName &&
@@ -113,7 +115,10 @@ export const getAll = <T extends Document>(Model: Model<T>) =>
     if (Model.modelName === NotificationModel.modelName && idUser) {
       const allNotifications = await NotificationModel.find({
         recipient: idUser,
-      }).sort("-createdAt");
+      })
+        .sort("-createdAt")
+        .skip(offset)
+        .limit(limit);
       return res.status(200).json({
         status: "success",
         results: allNotifications?.length,
