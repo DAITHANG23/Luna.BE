@@ -8,7 +8,7 @@ const notificationSchema = new mongoose.Schema<INotification>({
   message: { type: String, required: true },
   recipient: {
     type: Schema.Types.ObjectId,
-    ref: "UserModel",
+    ref: "User",
     required: true,
   },
   restaurant: {
@@ -21,11 +21,13 @@ const notificationSchema = new mongoose.Schema<INotification>({
   //     ref: "BookingModel",
   //     required: true,
   //   },
+  numberOfGuests: { type: String, required: true },
   type: {
     type: String,
     enum: ["bookingCreated", "bookingConfirmed", "bookingCanceled"],
     required: true,
   },
+  bookingDate: { type: String, required: true },
   createdAt: {
     type: Date,
     default: Date.now,
