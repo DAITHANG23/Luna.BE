@@ -85,12 +85,17 @@ export const getOne = <T extends Document>(
     });
   });
 
-export const getAll = <T extends Document>(Model: Model<T>) =>
+export const getAll = <T extends Document>(
+  Model: Model<T>,
+  popOptions?: PopulateOptions | (string | PopulateOptions)[]
+) =>
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const hasFilterOrQuery =
       Object.keys(req.query).length > 0 || !!req.params.conceptId;
 
     const idUser = req.user?._id;
+    const idRestaurant = req.params?.restaurantId;
+
     const limit = parseInt(req.query.limit as string) || 100;
     const offset = parseInt(req.query.offset as string) || 0;
     // Chỉ dùng cache nếu là ConceptModel và không có filter hay query param nào
@@ -123,6 +128,32 @@ export const getAll = <T extends Document>(Model: Model<T>) =>
         status: "success",
         results: allNotifications?.length,
         data: { data: allNotifications },
+      });
+    }
+
+    if (Model.modelName === BookingModel.modelName && idUser) {
+      let allBookingOfCustomer = BookingModel.find({
+        customer: idUser,
+      }).sort("-createdAt");
+      if (popOptions)
+        allBookingOfCustomer = allBookingOfCustomer.populate(popOptions);
+      const doc = await allBookingOfCustomer;
+      return res.status(200).json({
+        status: "success",
+        result: doc.length,
+        data: { data: doc },
+      });
+    }
+
+    if (Model.modelName === BookingModel.modelName && idRestaurant) {
+      const allBookingOfRestaurant = await BookingModel.find({
+        restaurant: idRestaurant,
+      }).sort("-createdAt");
+
+      return res.status(200).json({
+        status: "success",
+        result: allBookingOfRestaurant.length,
+        data: { data: allBookingOfRestaurant },
       });
     }
 

@@ -7,7 +7,7 @@ import {
   updateOne,
 } from "./handlerFactory";
 
-export const getAllBookings = getAll(BookingModel);
+export const getAllBookings = getAll(BookingModel, { path: "restaurant" });
 export const getBooking = getOne(BookingModel);
 export const createBooking = createOne(BookingModel);
 export const updateBooking = updateOne(BookingModel);
