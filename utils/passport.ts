@@ -18,6 +18,8 @@ passport.use(
           user = new User({
             googleId: profile.id,
             fullName: profile.displayName,
+            firstName: profile.name?.givenName,
+            lastName: profile.name?.familyName,
             email: profile.emails?.[0]?.value || "",
             avatarUrl: profile.photos?.[0]?.value || "",
           });
