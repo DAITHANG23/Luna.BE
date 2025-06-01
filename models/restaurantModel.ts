@@ -1,17 +1,17 @@
-import mongoose, { Schema, Types } from "mongoose";
-import { IRestaurant, Dish } from "../@types";
+import mongoose, { Query, Schema, Types } from "mongoose";
+import { IRestaurant } from "../@types";
 
 const restaurantSchema = new mongoose.Schema<IRestaurant>(
   {
-    name: { type: String, require: [true, "Please provider name."] },
-    address: { type: String, require: [true, "Please provider address."] },
+    name: { type: String, required: [true, "Please provider name."] },
+    address: { type: String, required: [true, "Please provider address."] },
     numberPhone: {
       type: String,
       require: [true, "Please provider number phone."],
     },
     concept: {
       type: Schema.Types.ObjectId,
-      ref: "ConceptRestaurantModel",
+      ref: "Concept",
       required: true,
     },
     bookingManager: {
@@ -64,6 +64,11 @@ const restaurantSchema = new mongoose.Schema<IRestaurant>(
     toObject: { virtuals: true },
   }
 );
+
+restaurantSchema.pre(/^find/, function (this: Query<any, any>, next) {
+  this.populate({ path: "concept", select: "name imageCover" });
+  next();
+});
 
 restaurantSchema.virtual("reviews", {
   ref: "Review",
