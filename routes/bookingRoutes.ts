@@ -5,10 +5,24 @@ import {
   deleteBooking,
   getBooking,
   updateBooking,
+  getAllBookings,
 } from "../controllers/bookingController";
 const router = express.Router();
 
-router.route("/").post(protect, restrictTo("customer"), createBooking);
+router
+  .route("/")
+  .get(
+    protect,
+    restrictTo(
+      "customer",
+      "admin",
+      "user",
+      "restaurantManager",
+      "conceptManager"
+    ),
+    getAllBookings
+  )
+  .post(protect, restrictTo("customer"), createBooking);
 
 router
   .route("/:id")
