@@ -3,6 +3,7 @@ import dotenv = require("dotenv");
 import { Request, Response } from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
+import { startReminderJob } from "./jobs/reminderJob";
 
 dotenv.config({ path: "./.env" });
 
@@ -39,6 +40,8 @@ io.on("connection", (socket) => {
   });
 });
 export { io };
+
+startReminderJob();
 
 app.get("/favicon.ico", (_req: Request, res: Response) =>
   res.status(204).end()
