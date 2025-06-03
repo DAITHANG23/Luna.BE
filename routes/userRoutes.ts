@@ -61,7 +61,7 @@ router.post("/checkInConcept", checkInConcept);
 router.delete("/deleteCheckInConcept", deleteCheckInConcept);
 router.delete("/deleteMe", deleteMe);
 
-router.use(restrictTo("admin, restaurantManager, conceptManager"));
+router.use(restrictTo("admin", "restaurantManager", "conceptManager"));
 
 router.route("/").get(getAllUsers).post(createUser);
 

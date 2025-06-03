@@ -27,7 +27,11 @@ router
 router
   .route("/:id")
   .get(getBooking)
-  .patch(protect, restrictTo("admin", "conceptManager"), updateBooking)
+  .patch(
+    protect,
+    restrictTo("admin", "conceptManager", "customer"),
+    updateBooking
+  )
   .delete(
     protect,
     restrictTo("admin", "conceptManager", "customer"),

@@ -52,7 +52,8 @@ export const emitBookingConfirmed = async (formData: any) => {
 
 export const emitBookingCanceled = async (formData: any) => {
   const restaurant = await Restaurant.findById(formData.restaurant);
-
+  const formatted = dayjs(formData.timeOfBooking).format("DD/MM/YYYY");
+  const dateBooking = `${formatted}  ${formData.timeSlot}`;
   const formDataBookingRestaurant = {
     recipient: formData.customer,
     restaurant: formData.restaurant,
@@ -60,6 +61,8 @@ export const emitBookingCanceled = async (formData: any) => {
     customer: formData.fullName,
     message: `Đặt bàn tại ${restaurant?.name || "Domique Fusion"} đã bị hủy.`,
     type: "bookingCanceled",
+    numberOfGuests: formData.peopleQuantity,
+    bookingDate: dateBooking,
     createdAt: Date.now(),
     read: false,
   };
@@ -71,6 +74,8 @@ export const emitBookingCanceled = async (formData: any) => {
 
 export const emitBookingReminder = async (formData: any) => {
   const restaurant = await Restaurant.findById(formData.restaurant);
+  const formatted = dayjs(formData.timeOfBooking).format("DD/MM/YYYY");
+  const dateBooking = `${formatted}  ${formData.timeSlot}`;
 
   const formDataBookingRestaurant = {
     recipient: formData.customer,
@@ -79,11 +84,13 @@ export const emitBookingReminder = async (formData: any) => {
     customer: formData.fullName,
     message: `Bạn có một lịch đặt bàn sắp tới tại ${restaurant?.name || "Domique Fusion"}.`,
     type: "bookingReminder",
+    numberOfGuests: formData.peopleQuantity,
+    bookingDate: dateBooking,
     createdAt: Date.now(),
     read: false,
   };
 
-  io.emit("emitBookingReminder", formDataBookingRestaurant);
+  io.emit("bookingReminder", formDataBookingRestaurant);
 
   await NotificationModel.create(formDataBookingRestaurant);
 };
