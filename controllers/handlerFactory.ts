@@ -6,8 +6,11 @@ import APIFeatures from "../utils/apiFeatures";
 import ConceptRestaurantModel from "../models/conceptModel";
 import redis from "../utils/redis";
 import BookingModel from "../models/bookingModel";
-import { IBooking } from "../@types";
-import { emitBookingCreated } from "../socket/bookingRestaurant/BookingRestaurant";
+import {
+  emitBookingCanceled,
+  emitBookingConfirmed,
+  emitBookingCreated,
+} from "../socket/bookingRestaurant/BookingRestaurant";
 import NotificationModel from "../models/notificationModel";
 
 export const deleteOne = <T extends Document>(Model: Model<T>) =>
@@ -26,10 +29,48 @@ export const deleteOne = <T extends Document>(Model: Model<T>) =>
 
 export const updateOne = <T extends Document>(Model: Model<T>) =>
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const nameUser = req.user?.fullName;
+
     const doc = await Model.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,
     });
+
+    if (Model.modelName === BookingModel.modelName) {
+      const bookingItem = await BookingModel.findById(req.params.id);
+
+      const updateBookingHistory = {
+        status: req.body.status,
+        updatedAt: new Date(),
+        updateBy: nameUser,
+      };
+
+      const formatBody = {
+        status: req.body.status,
+        statusHistory: [
+          ...(bookingItem?.statusHistory ?? []),
+          updateBookingHistory,
+        ],
+      };
+
+      const docBooking = await BookingModel.findByIdAndUpdate(
+        req.params.id,
+        formatBody,
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
+      if (!docBooking) {
+        return next(new AppError("No document found with that ID", 404));
+      }
+
+      if (req.body.status === "CANCELLED_BY_ADMIN") {
+        emitBookingCanceled(docBooking);
+      } else if (req.body.status === "CONFIRMED") {
+        emitBookingConfirmed(docBooking);
+      }
+    }
 
     if (!doc) {
       return next(new AppError("No document found with that ID", 404));
@@ -94,7 +135,9 @@ export const getAll = <T extends Document>(
       Object.keys(req.query).length > 0 || !!req.params.conceptId;
 
     const idUser = req.user?._id;
-    const idRestaurant = req.params?.restaurantId;
+    const roleUser = req.user?.role;
+
+    const idRestaurant = req.body?.restaurantId;
 
     const limit = parseInt(req.query.limit as string) || 100;
     const offset = parseInt(req.query.offset as string) || 0;
@@ -117,7 +160,11 @@ export const getAll = <T extends Document>(
       }
     }
 
-    if (Model.modelName === NotificationModel.modelName && idUser) {
+    if (
+      Model.modelName === NotificationModel.modelName &&
+      idUser &&
+      roleUser === "customer"
+    ) {
       const allNotifications = await NotificationModel.find({
         recipient: idUser,
       })
@@ -131,7 +178,11 @@ export const getAll = <T extends Document>(
       });
     }
 
-    if (Model.modelName === BookingModel.modelName && idUser) {
+    if (
+      Model.modelName === BookingModel.modelName &&
+      idUser &&
+      roleUser === "customer"
+    ) {
       let allBookingOfCustomer = BookingModel.find({
         customer: idUser,
       }).sort("-createdAt");
@@ -145,7 +196,11 @@ export const getAll = <T extends Document>(
       });
     }
 
-    if (Model.modelName === BookingModel.modelName && idRestaurant) {
+    if (
+      Model.modelName === BookingModel.modelName &&
+      idRestaurant &&
+      roleUser !== "customer"
+    ) {
       const allBookingOfRestaurant = await BookingModel.find({
         restaurant: idRestaurant,
       }).sort("-createdAt");
