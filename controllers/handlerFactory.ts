@@ -75,6 +75,10 @@ export const updateOne = <T extends Document>(Model: Model<T>) =>
       }
     }
 
+    if (Model.modelName === ConceptRestaurantModel.modelName) {
+      await redis.del("concepts:all");
+    }
+
     if (!doc) {
       return next(new AppError("No document found with that ID", 404));
     }
