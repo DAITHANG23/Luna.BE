@@ -94,3 +94,26 @@ export const emitBookingReminder = async (formData: any) => {
 
   await NotificationModel.create(formDataBookingRestaurant);
 };
+
+export const emitBookingCompleted = async (formData: any) => {
+  const restaurant = await Restaurant.findById(formData.restaurant);
+  const formatted = dayjs(formData.timeOfBooking).format("DD/MM/YYYY");
+  const dateBooking = `${formatted}  ${formData.timeSlot}`;
+
+  const formDataBookingRestaurant = {
+    recipient: formData.customer,
+    restaurant: formData.restaurant,
+    title: "Cảm ơn bạn đã ghé thăm",
+    customer: formData.fullName,
+    message: `Cảm ơn bạn đã dùng bữa với chúng tôi tại ${restaurant?.name || "Domique Fusion"}.`,
+    type: "bookingCompleted",
+    numberOfGuests: formData.peopleQuantity,
+    bookingDate: dateBooking,
+    createdAt: Date.now(),
+    read: false,
+  };
+
+  io.emit("bookingCompleted", formDataBookingRestaurant);
+
+  await NotificationModel.create(formDataBookingRestaurant);
+};

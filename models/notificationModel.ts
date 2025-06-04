@@ -29,6 +29,7 @@ const notificationSchema = new mongoose.Schema<INotification>({
       "bookingConfirmed",
       "bookingCanceled",
       "bookingReminder",
+      "bookingCompleted",
     ],
     required: true,
   },
