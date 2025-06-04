@@ -12,6 +12,7 @@ import {
 } from "./handlerFactory";
 import ConceptRestaurantModel from "../models/conceptModel";
 import UserModel from "../models/userModel";
+import redis from "../utils/redis";
 
 const multerStorage = multer.memoryStorage();
 
@@ -159,6 +160,9 @@ export const conceptReviewPost = catchAsync(
       },
       { new: true }
     );
+
+    await redis.del("concepts:all");
+
     res.status(200).json({
       status: "Success",
       data: {
