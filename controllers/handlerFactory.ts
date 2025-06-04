@@ -8,6 +8,7 @@ import redis from "../utils/redis";
 import BookingModel from "../models/bookingModel";
 import {
   emitBookingCanceled,
+  emitBookingCompleted,
   emitBookingConfirmed,
   emitBookingCreated,
 } from "../socket/bookingRestaurant/BookingRestaurant";
@@ -69,6 +70,8 @@ export const updateOne = <T extends Document>(Model: Model<T>) =>
         emitBookingCanceled(docBooking);
       } else if (req.body.status === "CONFIRMED") {
         emitBookingConfirmed(docBooking);
+      } else if (req.body.status === "COMPLETED") {
+        emitBookingCompleted(docBooking);
       }
     }
 
@@ -141,7 +144,7 @@ export const getAll = <T extends Document>(
 
     const limit = parseInt(req.query.limit as string) || 100;
     const offset = parseInt(req.query.offset as string) || 0;
-    // Chỉ dùng cache nếu là ConceptModel và không có filter hay query param nào
+
     if (
       Model.modelName === ConceptRestaurantModel.modelName &&
       !hasFilterOrQuery
