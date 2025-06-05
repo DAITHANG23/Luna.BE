@@ -157,7 +157,9 @@ export interface IBooking extends Document {
 export type ITypeNotification =
   | "bookingCreated"
   | "bookingConfirmed"
-  | "bookingCanceled";
+  | "bookingCanceled"
+  | "bookingInProgress"
+  | "bookingCompleted";
 export interface INotification extends Document {
   title: string;
   message: string;

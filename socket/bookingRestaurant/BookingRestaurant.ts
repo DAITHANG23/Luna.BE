@@ -50,6 +50,29 @@ export const emitBookingConfirmed = async (formData: any) => {
   await NotificationModel.create(formDataBookingRestaurant);
 };
 
+export const emitBookingInProgress = async (formData: any) => {
+  const restaurant = await Restaurant.findById(formData.restaurant);
+
+  const formatted = dayjs(formData.timeOfBooking).format("DD/MM/YYYY");
+  const dateBooking = `${formatted}  ${formData.timeSlot}`;
+  const formDataBookingRestaurant = {
+    recipient: formData.customer,
+    restaurant: formData.restaurant,
+    title: "Bữa ăn đang được diễn ra",
+    customer: formData.fullName,
+    message: `Nhà hàng ${restaurant?.name || "Domique Fusion"} đang phục vụ đơn đặt bàn của bạn. Chúc bạn có một trải nghiệm tuyệt vời!`,
+    type: "bookingInProgress",
+    createdAt: Date.now(),
+    read: false,
+    numberOfGuests: formData.peopleQuantity,
+    bookingDate: dateBooking,
+  };
+
+  io.emit("bookingInProgress", formDataBookingRestaurant);
+
+  await NotificationModel.create(formDataBookingRestaurant);
+};
+
 export const emitBookingCanceled = async (formData: any) => {
   const restaurant = await Restaurant.findById(formData.restaurant);
   const formatted = dayjs(formData.timeOfBooking).format("DD/MM/YYYY");
