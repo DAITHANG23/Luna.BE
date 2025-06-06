@@ -14,7 +14,7 @@ export interface User extends Document {
   gender: Gender;
   avatarId?: string;
   avatarUrl: string;
-  dateOfBirth: string;
+  dateOfBirth?: string;
   favorites: Array<Types.ObjectId>;
   checkInConcepts: Array<Types.ObjectId>;
   bookings: Array<Types.ObjectId>;
