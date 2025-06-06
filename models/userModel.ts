@@ -191,6 +191,9 @@ userSchema.pre("save", function (next) {
 });
 
 userSchema.pre("save", function (next) {
+  if (!this.dateOfBirth) {
+    return next();
+  }
   const minAgeDate = dayjs().subtract(13, "year").startOf("day");
   const dob = dayjs(this.dateOfBirth);
 
