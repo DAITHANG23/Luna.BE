@@ -97,7 +97,6 @@ const userSchema = new mongoose.Schema<User>(
     },
     dateOfBirth: {
       type: String,
-      require: [true, "Please provide birth of date."],
     },
     favorites: {
       type: [{ type: Schema.Types.ObjectId, ref: "Concept" }],
