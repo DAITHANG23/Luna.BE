@@ -37,14 +37,6 @@ app.use(
   })
 );
 
-app.options(
-  "*",
-  cors({
-    origin: allowedOrigin,
-    credentials: true,
-  })
-);
-
 app.set("trust proxy", 1);
 app.set("query parser", (str: any) =>
   qs.parse(str, { arrayLimit: 100, allowDots: true })
