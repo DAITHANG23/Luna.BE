@@ -70,6 +70,7 @@ const createSendToken = async (
       httpOnly: true,
       secure: true,
       sameSite: "none",
+      path: "/",
     });
 
     res.cookie("accessToken", accessToken, {
@@ -77,6 +78,7 @@ const createSendToken = async (
       httpOnly: true,
       secure: true,
       sameSite: "none",
+      path: "/",
     });
   }
 
