@@ -71,6 +71,7 @@ const createSendToken = async (
       secure: true,
       sameSite: "none",
       path: "/",
+      domain: ".domiquefusion.store",
     });
 
     res.cookie("accessToken", accessToken, {
@@ -79,6 +80,7 @@ const createSendToken = async (
       secure: true,
       sameSite: "none",
       path: "/",
+      domain: ".domiquefusion.store",
     });
   }
 
@@ -592,6 +594,7 @@ export const googleAuthCallback = catchAsync(
         secure: isProd ? true : false,
         sameSite: isProd ? "none" : "lax",
         path: "/",
+        domain: ".domiquefusion.store",
       });
       res.cookie("accessToken", accessToken, {
         expires: new Date(Date.now() + 60 * 60 * 1000),
@@ -599,6 +602,7 @@ export const googleAuthCallback = catchAsync(
         secure: isProd ? true : false,
         sameSite: isProd ? "none" : "lax",
         path: "/",
+        domain: ".domiquefusion.store",
       });
 
       const redirectUrl = isProd
