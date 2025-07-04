@@ -67,7 +67,7 @@ const createSendToken = async (
   if (isProd) {
     res.cookie("refreshToken", refreshToken, {
       expires: new Date(Date.now() + timeExpire * 24 * 60 * 60 * 1000),
-      httpOnly: true,
+      httpOnly: false,
       secure: true,
       sameSite: "none",
       path: "/",
@@ -76,7 +76,7 @@ const createSendToken = async (
 
     res.cookie("accessToken", accessToken, {
       expires: new Date(Date.now() + timeExpire * 24 * 60 * 60 * 1000),
-      httpOnly: true,
+      httpOnly: false,
       secure: true,
       sameSite: "none",
       path: "/",
@@ -590,19 +590,19 @@ export const googleAuthCallback = catchAsync(
 
       res.cookie("refreshToken", refreshToken, {
         expires: new Date(Date.now() + timeExpire * 24 * 60 * 60 * 1000),
-        httpOnly: isProd ? true : false,
+        httpOnly: false,
         secure: isProd ? true : false,
         sameSite: isProd ? "none" : "lax",
         path: "/",
-        domain: ".domiquefusion.store",
+        domain: isProd ? ".domiquefusion.store" : undefined,
       });
       res.cookie("accessToken", accessToken, {
         expires: new Date(Date.now() + 60 * 60 * 1000),
-        httpOnly: isProd ? true : false,
+        httpOnly: false,
         secure: isProd ? true : false,
         sameSite: isProd ? "none" : "lax",
         path: "/",
-        domain: ".domiquefusion.store",
+        domain: isProd ? ".domiquefusion.store" : undefined,
       });
 
       const redirectUrl = isProd
