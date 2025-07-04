@@ -9,6 +9,8 @@ import { authenticator } from "otplib";
 import { User, IUserEmail } from "../@types/index";
 import redis from "../utils/redis";
 
+const isProd = process.env.NODE_ENV === "production";
+
 const verifyToken = (token: string, secret: string): Promise<any> => {
   return new Promise((resolve, reject) => {
     jwt.verify(token, secret, (err, decoded) => {
@@ -62,21 +64,10 @@ const createSendToken = async (
 
   const timeExpire = Number(process.env.REFRESH_TOKEN_EXPIRED_IN);
 
-  const isProd = process.env.NODE_ENV === "production";
-
   if (isProd) {
     res.cookie("refreshToken", refreshToken, {
       expires: new Date(Date.now() + timeExpire * 24 * 60 * 60 * 1000),
-      httpOnly: false,
-      secure: true,
-      sameSite: "none",
-      path: "/",
-      domain: ".domiquefusion.store",
-    });
-
-    res.cookie("accessToken", accessToken, {
-      expires: new Date(Date.now() + timeExpire * 24 * 60 * 60 * 1000),
-      httpOnly: false,
+      httpOnly: true,
       secure: true,
       sameSite: "none",
       path: "/",
@@ -246,7 +237,7 @@ export const login = catchAsync(async (req, res, next) => {
 export const logout = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     let refreshToken;
-    const isProd = process.env.NODE_ENV === "production";
+
     if (isProd) {
       refreshToken = req.cookies.refreshToken;
     } else {
@@ -584,13 +575,11 @@ export const googleAuthCallback = catchAsync(
         return res.status(400).json({ message: "Authentication failed" });
       }
 
-      const isProd = process.env.NODE_ENV === "production";
-
       const timeExpire = Number(process.env.REFRESH_TOKEN_EXPIRED_IN);
 
       res.cookie("refreshToken", refreshToken, {
         expires: new Date(Date.now() + timeExpire * 24 * 60 * 60 * 1000),
-        httpOnly: false,
+        httpOnly: true,
         secure: isProd ? true : false,
         sameSite: isProd ? "none" : "lax",
         path: "/",
