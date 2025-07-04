@@ -67,16 +67,7 @@ const createSendToken = async (
   if (isProd) {
     res.cookie("refreshToken", refreshToken, {
       expires: new Date(Date.now() + timeExpire * 24 * 60 * 60 * 1000),
-      httpOnly: false,
-      secure: true,
-      sameSite: "none",
-      path: "/",
-      domain: ".domiquefusion.store",
-    });
-
-    res.cookie("accessToken", accessToken, {
-      expires: new Date(Date.now() + timeExpire * 24 * 60 * 60 * 1000),
-      httpOnly: false,
+      httpOnly: true,
       secure: true,
       sameSite: "none",
       path: "/",
@@ -590,7 +581,7 @@ export const googleAuthCallback = catchAsync(
 
       res.cookie("refreshToken", refreshToken, {
         expires: new Date(Date.now() + timeExpire * 24 * 60 * 60 * 1000),
-        httpOnly: false,
+        httpOnly: true,
         secure: isProd ? true : false,
         sameSite: isProd ? "none" : "lax",
         path: "/",
