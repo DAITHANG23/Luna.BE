@@ -1,4 +1,4 @@
-import express, { NextFunction } from "express";
+import express from "express";
 import morgan from "morgan";
 import rateLimit, { Options } from "express-rate-limit";
 import helmet from "helmet";
@@ -87,7 +87,7 @@ const rateLimitHandler: Options["handler"] = (req, res, _next) => {
 
 const limiter = rateLimit({
   windowMs: 1 * 60 * 1000,
-  max: 30,
+  max: 50,
   message: {
     status: "fail",
     error: {

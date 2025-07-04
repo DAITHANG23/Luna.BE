@@ -64,9 +64,15 @@ const createSendToken = async (
 
   const isProd = process.env.NODE_ENV === "production";
 
-  // when deploy vps will use this code
-  if (process.env.NODE_ENV === "production") {
-    res.cookie("jwt", refreshToken, {
+  if (isProd) {
+    res.cookie("refreshToken", refreshToken, {
+      expires: new Date(Date.now() + timeExpire * 24 * 60 * 60 * 1000),
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
+
+    res.cookie("accessToken", accessToken, {
       expires: new Date(Date.now() + timeExpire * 24 * 60 * 60 * 1000),
       httpOnly: true,
       secure: true,
@@ -235,7 +241,13 @@ export const login = catchAsync(async (req, res, next) => {
 
 export const logout = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { refreshToken } = req.body;
+    let refreshToken;
+    const isProd = process.env.NODE_ENV === "production";
+    if (isProd) {
+      refreshToken = req.cookies.refreshToken;
+    } else {
+      refreshToken = req.body.refreshToken;
+    }
 
     if (!refreshToken) {
       return next(
@@ -257,9 +269,14 @@ export const logout = catchAsync(
         { new: true }
       );
     }
-    // when deploy vercel will use this code
-    if (process.env.NODE_ENV === "production") {
-      res.clearCookie("jwt", {
+
+    if (isProd) {
+      res.clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+      });
+      res.clearCookie("accessToken", {
         httpOnly: true,
         secure: true,
         sameSite: "none",
@@ -363,7 +380,7 @@ export const refreshToken = catchAsync(
     let refreshToken;
 
     if (process.env.NODE_ENV === "production") {
-      refreshToken = req.cookies.jwt;
+      refreshToken = req.cookies.refreshToken;
     } else {
       refreshToken = req.body.refreshToken;
     }
@@ -567,18 +584,24 @@ export const googleAuthCallback = catchAsync(
 
       const timeExpire = Number(process.env.REFRESH_TOKEN_EXPIRED_IN);
 
-      if (isProd) {
-        res.cookie("jwt", refreshToken, {
-          expires: new Date(Date.now() + timeExpire * 24 * 60 * 60 * 1000),
-          httpOnly: true,
-          secure: true,
-          sameSite: "none",
-        });
-      }
+      res.cookie("refreshToken", refreshToken, {
+        expires: new Date(Date.now() + timeExpire * 24 * 60 * 60 * 1000),
+        httpOnly: isProd ? true : false,
+        secure: isProd ? true : false,
+        sameSite: isProd ? "none" : "lax",
+        path: "/",
+      });
+      res.cookie("accessToken", accessToken, {
+        expires: new Date(Date.now() + 60 * 60 * 1000),
+        httpOnly: isProd ? true : false,
+        secure: isProd ? true : false,
+        sameSite: isProd ? "none" : "lax",
+        path: "/",
+      });
 
       const redirectUrl = isProd
-        ? `${process.env.FRONTEND_URL_PROD}/?accessToken=${accessToken}`
-        : `${process.env.FRONTEND_URL}/?accessToken=${accessToken}&refreshToken=${refreshToken}`;
+        ? `${process.env.FRONTEND_URL_PROD}`
+        : `${process.env.FRONTEND_URL}`;
 
       return res.redirect(redirectUrl);
     } catch (error) {
