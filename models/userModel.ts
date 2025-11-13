@@ -60,7 +60,6 @@ const userSchema = new mongoose.Schema<User>(
       maxLength: [100, "Address must be maxium 100 characters"],
       default: "Thong Nhat, Go Vap",
     },
-
     password: {
       type: String,
       require: [true, "Please provide password."],
@@ -90,10 +89,6 @@ const userSchema = new mongoose.Schema<User>(
         },
         message: "Customer can not have restaurant",
       },
-    },
-    refreshToken: {
-      type: String,
-      select: false,
     },
     dateOfBirth: {
       type: String,

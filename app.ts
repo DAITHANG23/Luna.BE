@@ -1,4 +1,4 @@
-import express from "express";
+import express, { RequestHandler } from "express";
 import morgan from "morgan";
 import rateLimit, { Options } from "express-rate-limit";
 import helmet from "helmet";
@@ -21,6 +21,7 @@ import qs from "qs";
 import { RedisStore } from "connect-redis";
 const xss = require("xss-clean");
 import hpp from "hpp";
+import { isLoggedIn } from "./controllers/authController";
 
 const app = express();
 const allowedOrigin =
@@ -123,7 +124,8 @@ app.use(
     whitelist: ["ratingsQuantity", "ratingsAverage", "price"],
   })
 );
-
+// 2) TEST MIDDLEWARE
+app.use(isLoggedIn as RequestHandler);
 // 3) ROUTES
 // app.use('/', viewRouter);
 app.use("/api/v1/restaurants", restaurantRouter);

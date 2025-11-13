@@ -7,7 +7,6 @@ import {
   resetPassword,
   updatePassword,
   protect,
-  refreshToken,
   restrictTo,
   verifyOtp,
   resendOtp,
@@ -39,7 +38,6 @@ router.post("/verify-otp", verifyOtp);
 router.post("/resendOtp", resendOtp);
 
 router.post("/logout", logout);
-router.post("/refreshToken", refreshToken);
 router.post("/forgotPassword", forgotPassword);
 router.patch("/resetPassword/:token", resetPassword);
 
