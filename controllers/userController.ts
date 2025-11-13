@@ -12,7 +12,6 @@ import {
 import { uploadSingleImage } from "../utils/uploadImage";
 import cloudinary from "cloudinary";
 import UserModel from "../models/userModel";
-import ConceptRestaurantModel from "../models/conceptModel";
 import mongoose, { Types } from "mongoose";
 
 // const multerStorage = multer.diskStorage({

@@ -2,6 +2,8 @@ import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import User from "../models/userModel";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
+import redis from "./redis";
 
 passport.use(
   new GoogleStrategy(
@@ -29,25 +31,22 @@ passport.use(
           { userId: user._id },
           process.env.JWT_SECRET!,
           {
-            expiresIn: "1h",
+            expiresIn: "7d",
           }
         );
+        const sessionId = crypto.randomBytes(16).toString("hex");
 
-        const newRefreshToken = jwt.sign(
-          { userId: user._id },
-          process.env.REFRESH_SECRET!,
-          {
-            expiresIn: "30d",
-          }
+        const ttlSeconds = 60 * 60 * 24 * 7;
+        await redis.set(
+          `session:${sessionId}`,
+          newAccessToken,
+          "EX",
+          ttlSeconds
         );
-
-        user.refreshToken = newRefreshToken;
-        await user.save();
 
         const authData: any = {
           user,
-          accessToken: newAccessToken,
-          refreshToken: newRefreshToken,
+          sessionId: sessionId,
         };
 
         return done(null, authData);

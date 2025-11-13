@@ -8,7 +8,7 @@ export interface User extends Document {
   lastName: string;
   firstName: string;
   email: string;
-  password: string;
+  password?: string;
   passwordConfirm?: string;
   address: string;
   gender: Gender;
@@ -20,7 +20,6 @@ export interface User extends Document {
   bookings: Array<Types.ObjectId>;
   numberPhone: string;
   role: string;
-  refreshToken?: string;
   active: boolean;
   createdAt: Date;
   updatedAt: Date;
