@@ -150,24 +150,6 @@ export const getAll = <T extends Document>(
     const offset = parseInt(req.query.offset as string) || 0;
 
     if (
-      Model.modelName === ConceptRestaurantModel.modelName &&
-      !hasFilterOrQuery
-    ) {
-      const cache = await redis.get("concepts:all");
-
-      if (cache) {
-        const data = JSON.parse(cache);
-
-        return res.status(200).json({
-          status: "success",
-          results: data.length,
-          data: { data },
-          source: "redis",
-        });
-      }
-    }
-
-    if (
       Model.modelName === NotificationModel.modelName &&
       idUser &&
       roleUser === "customer"
@@ -237,9 +219,10 @@ export const getAll = <T extends Document>(
       return rest;
     });
 
+    const cacheConceptsData = await redis.get("concepts:all");
+
     if (
-      Model.modelName === ConceptRestaurantModel.modelName &&
-      !hasFilterOrQuery
+      Model.modelName === ConceptRestaurantModel.modelName && (!cacheConceptsData || JSON.parse(cacheConceptsData).length === 0)
     ) {
       await redis.set(
         "concepts:all",
@@ -247,6 +230,23 @@ export const getAll = <T extends Document>(
         "EX",
         3600
       );
+    }
+
+    if (
+      Model.modelName === ConceptRestaurantModel.modelName &&
+      !hasFilterOrQuery
+    ) {
+      
+      if (cacheConceptsData) {
+        const data = JSON.parse(cacheConceptsData);
+
+        return res.status(200).json({
+          status: "success",
+          results: data.length,
+          data: { data },
+          source: "redis",
+        });
+      }
     }
 
     res.status(200).json({
