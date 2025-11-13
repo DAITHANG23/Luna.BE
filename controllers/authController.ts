@@ -36,37 +36,21 @@ const signAccessToken = (id: string) => {
   return jwt.sign(payload, secretKey, optionsAccess);
 };
 
-const signRefreshToken = (id: string) => {
-  const secretKey = process.env.REFRESH_SECRET;
-
-  if (!secretKey) {
-    throw new Error("REFRESH_SECRET is not defined!");
-  }
-
-  const payload = { userId: id };
-
-  const optionsRefresh: jwt.SignOptions = {
-    expiresIn: "30d",
-  };
-
-  return jwt.sign(payload, secretKey, optionsRefresh);
-};
-
 const createSendToken = async (
-  user: any,
+  user: User,
   statusCode: number,
   req: Request,
   res: Response
 ) => {
-  const accessToken = signAccessToken(user._id);
+  const sessionId = crypto.randomBytes(16).toString("hex");
 
-  const refreshToken = signRefreshToken(user._id);
+  const ttlSeconds = 60 * 60 * 24 * 7;
 
-  const timeExpire = Number(process.env.REFRESH_TOKEN_EXPIRED_IN);
+  const accessToken = signAccessToken(user._id as string);
 
   if (isProd) {
-    res.cookie("refreshToken", refreshToken, {
-      expires: new Date(Date.now() + timeExpire * 24 * 60 * 60 * 1000),
+    res.cookie("sessionId", sessionId, {
+      expires: new Date(Date.now() + ttlSeconds * 1000),
       httpOnly: true,
       secure: true,
       sameSite: "none",
@@ -75,19 +59,19 @@ const createSendToken = async (
     });
   }
 
+  await redis.set(`session:${sessionId}`, accessToken, "EX", ttlSeconds);
+
   user.password = undefined;
-  await UserModel.findByIdAndUpdate(user._id, { refreshToken });
 
   const responseData: any = {
     status: "success",
-    accessToken,
     data: {
       user,
     },
   };
 
   if (!isProd) {
-    responseData.refreshToken = refreshToken;
+    responseData.sessionId = sessionId;
   }
 
   res.status(statusCode).json(responseData);
@@ -206,7 +190,7 @@ export const verifyOtp = catchAsync(async (req, res, next) => {
 
   const newUser = await UserModel.create(userBody);
 
-  const url = `${process.env.FRONTEND_URL}/login`;
+  const url = `${process.env.FRONTEND_URL}/en/login`;
 
   await new Email(newUser, url).sendWelcome();
 
@@ -227,7 +211,10 @@ export const login = catchAsync(async (req, res, next) => {
     return next(new AppError("Email is not exist", 401));
   }
 
-  if (!user || !(await user.correctPassword(password, user.password))) {
+  if (
+    !user ||
+    !(await user.correctPassword(password, user.password as string))
+  ) {
     return next(new AppError("Incorrect email or password", 401));
   }
   // 3) If everything ok, send token to client
@@ -236,68 +223,56 @@ export const login = catchAsync(async (req, res, next) => {
 
 export const logout = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    let refreshToken;
+    const sessionId = req.cookies.sessionId;
 
-    if (isProd) {
-      refreshToken = req.cookies.refreshToken;
-    } else {
-      refreshToken = req.body.refreshToken;
-    }
-
-    if (!refreshToken) {
+    if (!sessionId) {
       return next(
         new AppError("You are not logged in! Please log in to get access.", 401)
       );
     }
 
-    const decoded = await verifyToken(
-      refreshToken,
-      process.env.REFRESH_SECRET as string
-    );
+    await redis.del(`session:${sessionId}`);
 
-    const currentUser = await UserModel.findById(decoded.userId);
-
-    if (currentUser) {
-      await UserModel.findByIdAndUpdate(
-        decoded.userId,
-        { refreshToken: null },
-        { new: true }
-      );
-    }
-
-    if (isProd) {
-      res.clearCookie("refreshToken", {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-      });
-      res.clearCookie("accessToken", {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-      });
-    }
+    res.clearCookie("sessionId", {
+      httpOnly: isProd ? true : false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    });
 
     res.status(200).json({ status: "success", message: "Logged out" });
   }
 );
 
 export const protect = catchAsync(async (req, res, next) => {
-  let token;
+  let sessionId = "";
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith("Bearer")
   ) {
-    token = req.headers.authorization.split(" ")[1];
+    sessionId = req.headers.authorization.split(" ")[1];
+  } else {
+    sessionId = req.cookies.sessionId;
   }
-
-  if (!token) {
+  if (!sessionId) {
     return next(
       new AppError("You are not logged in! Please log in to get access.", 401)
     );
   }
 
-  const decoded = await verifyToken(token, process.env.JWT_SECRET as string);
+  const key = `session:${sessionId}`;
+  const sessionData = await redis.get(key);
+
+  if (!sessionData) {
+    return res.status(401).json({ message: "Session expired" });
+  }
+
+  const ttlSeconds = 60 * 60 * 24 * 7;
+  await redis.expire(key, ttlSeconds);
+
+  const decoded = await verifyToken(
+    sessionData,
+    process.env.JWT_SECRET as string
+  );
 
   const currentUser = await UserModel.findById(decoded.userId);
 
@@ -308,6 +283,16 @@ export const protect = catchAsync(async (req, res, next) => {
         401
       )
     );
+  }
+  if (isProd) {
+    res.cookie("sessionId", sessionId, {
+      expires: new Date(Date.now() + ttlSeconds * 1000),
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      path: "/",
+      domain: ".domiquefusion.store",
+    });
   }
 
   req.user = currentUser;
@@ -320,22 +305,33 @@ export const isLoggedIn = async (
   res: Response,
   next: NextFunction
 ) => {
-  // const token =
-  //   process.env.NODE_ENV === "production"
-  //     ? req.cookies.jwt
-  //     : req.body.refreshToken;
-  // const token = req.body.refreshToken;
+  let sessionId = "";
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
+    sessionId = req.headers.authorization.split(" ")[1];
+  } else {
+    sessionId = req.cookies.sessionId;
+  }
 
-  if (req.body.refreshToken) {
+  if (sessionId) {
     try {
+      const key = `session:${sessionId}`;
+      const sessionData = await redis.get(key);
+
+      if (!sessionData) {
+        return next();
+      }
       // 1) verify token
       const decoded = await verifyToken(
-        req.body.refreshToken,
+        sessionData,
         process.env.JWT_SECRET as string
       );
 
       // 2) Check if user still exists
-      const currentUser = await UserModel.findById(decoded.id);
+      const currentUser = await UserModel.findById(decoded.userId);
+
       if (!currentUser) {
         return next();
       }
@@ -345,10 +341,18 @@ export const isLoggedIn = async (
         return next();
       }
 
+      const newAccessToken = signAccessToken(currentUser._id as string);
+      const ttlSeconds = 60 * 60 * 24 * 7;
+
+      await redis.set(`session:${sessionId}`, newAccessToken, "EX", ttlSeconds);
+
       // THERE IS A LOGGED IN USER
       res.locals.user = currentUser;
       return next();
     } catch (err) {
+      if (!res.locals.user) {
+        return res.status(401).json({ message: "You must be logged in" });
+      }
       return next();
     }
   }
@@ -357,7 +361,6 @@ export const isLoggedIn = async (
 
 export const restrictTo = (...roles: any) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    // roles ['admin', 'lead-guide']. role='user'
     const role = req.user?.role || "";
 
     if (!roles.includes(role)) {
@@ -369,38 +372,6 @@ export const restrictTo = (...roles: any) => {
     next();
   };
 };
-
-export const refreshToken = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    let refreshToken;
-
-    if (process.env.NODE_ENV === "production") {
-      refreshToken = req.cookies.refreshToken;
-    } else {
-      refreshToken = req.body.refreshToken;
-    }
-
-    if (!refreshToken) return next(new AppError("Refresh token missing!", 401));
-
-    const secretKey = process.env.REFRESH_SECRET;
-    if (!secretKey)
-      return next(new AppError("Server error: Missing REFRESH_SECRET", 500));
-
-    const decoded = await verifyToken(refreshToken, secretKey);
-
-    const user = await UserModel.findById(decoded.userId).select(
-      "+refreshToken"
-    );
-
-    if (!user || user.refreshToken !== refreshToken) {
-      return next(new AppError("Invalid refresh token!", 403));
-    }
-
-    const accessToken = signAccessToken(user._id as string);
-
-    return res.json({ accessToken });
-  }
-);
 
 export const forgotPassword = catchAsync(async (req, res, next) => {
   // 1) Get user based on POSTed email
@@ -425,7 +396,7 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
 
   // 3) Send it to user's email
   try {
-    const resetURL = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+    const resetURL = `${process.env.FRONTEND_URL}/en/reset-password/${resetToken}`;
 
     await new Email(user, resetURL, otp).sendPasswordReset();
 
@@ -551,7 +522,10 @@ export const updatePassword = catchAsync(async (req, res, next) => {
   // 2) Check if POSTed current password is correct
   if (
     !user ||
-    !(await user.correctPassword(req.body.passwordCurrent, user.password))
+    !(await user.correctPassword(
+      req.body.passwordCurrent,
+      user.password as string
+    ))
   ) {
     return next(new AppError("Your current password is wrong.", 401));
   }
@@ -569,25 +543,15 @@ export const updatePassword = catchAsync(async (req, res, next) => {
 export const googleAuthCallback = catchAsync(
   async (req: Request, res: Response) => {
     try {
-      const { user, accessToken, refreshToken } = req.user as any;
+      const { user, sessionId } = req.user as any;
 
-      if (!user || !accessToken) {
+      if (!user || !sessionId) {
         return res.status(400).json({ message: "Authentication failed" });
       }
 
-      const timeExpire = Number(process.env.REFRESH_TOKEN_EXPIRED_IN);
-
-      res.cookie("refreshToken", refreshToken, {
-        expires: new Date(Date.now() + timeExpire * 24 * 60 * 60 * 1000),
-        httpOnly: true,
-        secure: isProd ? true : false,
-        sameSite: isProd ? "none" : "lax",
-        path: "/",
-        domain: isProd ? ".domiquefusion.store" : undefined,
-      });
-      res.cookie("accessToken", accessToken, {
-        expires: new Date(Date.now() + 60 * 60 * 1000),
-        httpOnly: false,
+      res.cookie("sessionId", sessionId, {
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        httpOnly: isProd ? true : false,
         secure: isProd ? true : false,
         sameSite: isProd ? "none" : "lax",
         path: "/",
