@@ -389,6 +389,8 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
 
   user.otpCode = otp;
   user.otpExpires = new Date(Date.now() + 90 * 1000);
+
+  await redis.set(`otp:${user.email}`, otp, "EX", 300);
   // 2) Generate the random reset token
   const resetToken = user.createPasswordResetToken();
 
@@ -423,30 +425,28 @@ export const resendOtp = catchAsync(async (req, res, next) => {
 
   const { email } = req.body;
 
-  let userInfo: IUserEmail = { email, fullName: "Customer" };
   if (!email) {
     return next(new AppError("Email is required", 400));
+  }
+  if (!user) {
+    return next(new AppError("There is no user with email address.", 404));
   }
 
   authenticator.options = { step: 90 };
   const secret = process.env.OTP_KEY_SECRET || "";
   const newOtp = authenticator.generate(secret);
 
-  if (user) {
-    user.otpCode = newOtp;
-    user.otpExpires = new Date(Date.now() + 90 * 1000);
-
-    userInfo = {
-      email: user.email || email,
-      fullName: user.fullName || "Customer",
-    };
-    await user.save({ validateBeforeSave: false });
-  }
+  user.otpCode = newOtp;
+  user.otpExpires = new Date(Date.now() + 90 * 1000);
 
   await redis.set(`otp:${email}`, newOtp, "EX", 300);
 
+  const resetToken = user.createPasswordResetToken();
+  await user.save({ validateBeforeSave: false });
+
   try {
-    await new Email(userInfo, "", newOtp).sendPasswordReset();
+    const resetURL = `${process.env.FRONTEND_URL}/en/reset-password/${resetToken}`;
+    await new Email(user, resetURL, newOtp).sendPasswordReset();
 
     res.status(200).json({
       status: "success",
