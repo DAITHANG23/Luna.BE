@@ -147,7 +147,8 @@ export const getAll = <T extends Document>(
     const idRestaurant = req.body?.restaurantId;
 
     const limit = parseInt(req.query.limit as string) || 100;
-    const offset = parseInt(req.query.offset as string) || 0;
+
+    const cursor = req.query.cursor ? String(req.query.cursor).trim() : "";
 
     if (
       Model.modelName === ConceptRestaurantModel.modelName &&
@@ -167,21 +168,43 @@ export const getAll = <T extends Document>(
       }
     }
 
+    //notifications
     if (
       Model.modelName === NotificationModel.modelName &&
       idUser &&
       roleUser === "customer"
     ) {
-      const allNotifications = await NotificationModel.find({
-        recipient: idUser,
-      })
+      let allNotifications = [];
+      const query: any = { recipient: idUser };
+
+      // Nếu có cursor, lấy notifications TRƯỚC cursor đó
+      if (cursor) {
+        query._id = { $lt: cursor };
+      }
+
+      allNotifications = await NotificationModel.find(query)
         .sort("-createdAt")
-        .skip(offset)
-        .limit(limit);
+        .limit(limit + 1);
+
+      const hasMore = allNotifications.length > limit;
+
+      // Trả về chỉ limit items
+      const dataToReturn = hasMore
+        ? allNotifications.slice(0, limit)
+        : allNotifications;
+
+      // Lấy cursor cho page tiếp theo
+      const nextCursor =
+        dataToReturn.length > 0
+          ? dataToReturn[dataToReturn.length - 1]._id
+          : null;
+
       return res.status(200).json({
         status: "success",
-        results: allNotifications?.length,
-        data: { data: allNotifications },
+        results: dataToReturn?.length,
+        data: { data: dataToReturn },
+        nextCursor,
+        hasMore,
       });
     }
 
