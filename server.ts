@@ -48,7 +48,7 @@ app.get("/favicon.ico", (_req: Request, res: Response) =>
 );
 
 const port = process.env.PORT || 8001;
-const server = httpServer.listen(port, () => {
+const server = httpServer.listen(Number(port), '0.0.0.0', () => {
   console.log(`App running on the ${port}...`);
 });
 

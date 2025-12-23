@@ -10,6 +10,7 @@ import bookingRouter from "./routes/bookingRoutes";
 import notificationRouter from "./routes/notificationRoutes";
 import restaurantRouter from "./routes/restaurantRoutes";
 import conceptRouter from "./routes/conceptRoutes";
+import healthCheckRouter from "./routes/healthCheckRoutes"
 import compression from "compression";
 import errController from "./controllers/errorController";
 import cors from "cors";
@@ -124,10 +125,22 @@ app.use(
     whitelist: ["ratingsQuantity", "ratingsAverage", "price"],
   })
 );
+
+app.use((req, res, next) => {
+  console.log('📥 Incoming Request:', {
+    method: req.method,
+    url: req.url,
+    path: req.path,
+    headers: req.headers,
+    timestamp: new Date().toISOString()
+  });
+  next();
+});
 // 2) TEST MIDDLEWARE
 app.use(isLoggedIn as RequestHandler);
 // 3) ROUTES
 // app.use('/', viewRouter);
+app.use("/api/v1/healthcheck", healthCheckRouter)
 app.use("/api/v1/restaurants", restaurantRouter);
 app.use("/api/v1/concepts", conceptRouter);
 app.use("/api/v1/users", userRouter);
