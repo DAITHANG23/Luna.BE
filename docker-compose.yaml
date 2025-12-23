@@ -1,0 +1,71 @@
+services:
+  backend:
+    container_name: restaurants_booking_api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8002:8001"
+      - "3333:3333"
+
+    # volumes:
+    #   - ./:/usr/src/app
+    #   - /usr/src/app/node_modules
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - FRONTEND_URL=${FRONTEND_URL} 
+      - PORT=${PORT}
+      - BACKEND_URL=${BACKEND_URL}
+      - USERNAME=${USERNAME}
+      # - MONGO_URI=${MONGO_URI}
+      # - MONGO_PASSWORD=${MONGO_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_PORT=${EMAIL_PORT}
+      - EMAIL_USERNAME=${EMAIL_USERNAME}
+      - EMAIL_PASSWORD=${EMAIL_PASSWORD}
+      - EMAIL_FROM=${EMAIL_FROM}
+      - CLOUDINARY_NAME=${CLOUDINARY_NAME}
+      - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
+      - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
+      - OTP_KEY_SECRET=${OTP_KEY_SECRET}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - SESSION_SECRET=${SESSION_SECRET}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/api/v1/healthcheck"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 90s 
+    depends_on:
+      - redis
+    networks:
+      - restaurants_booking_admin_network
+
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    command: > 
+      redis-server
+      --appendonly yes
+      --requirepass ${REDIS_PASSWORD}
+    ports: 
+      - "6379:6379"
+    volumes:
+      - redis_data:/data  
+    networks:
+      - restaurants_booking_admin_network
+
+volumes:
+  redis_data:
+
+networks: 
+  restaurants_booking_admin_network:
+    driver: bridge        
