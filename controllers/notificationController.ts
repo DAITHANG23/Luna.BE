@@ -29,7 +29,24 @@ export const checkReadNotification = catchAsync(
   }
 );
 
-export const getAllNotifications = getAll(NotificationModel);
+export const getAllNotifications = getAll(NotificationModel,  {
+  filterBuilder(req) {
+    if (req.user?.role === "customer") {
+      return { recipient: req.user._id };
+    }
+    return {};
+  },
+
+  preQuery(query, req) {
+    const limit = Number(req.query.limit) || 20;
+    const offset = Number(req.query.offset) || 0;
+
+    return query
+      .sort("-createdAt")
+      .skip(offset)
+      .limit(limit);
+  },
+});
 export const getNotification = getOne(NotificationModel, {
   path: "restaurant recipient",
 });
