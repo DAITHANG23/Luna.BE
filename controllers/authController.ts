@@ -1,15 +1,15 @@
-import { NextFunction, Request, Response } from "express";
-import jwt from "jsonwebtoken";
-import catchAsync from "../utils/catchAsync";
-import UserModel from "../models/userModel";
-import AppError from "../utils/appError";
-import Email from "../utils/emails";
-import crypto from "crypto";
-import { authenticator } from "otplib";
-import { User, IUserEmail } from "../@types/index";
-import redis from "../utils/redis";
+import { NextFunction, Request, Response } from 'express';
+import jwt from 'jsonwebtoken';
+import catchAsync from '../utils/catchAsync';
+import UserModel from '../models/userModel';
+import AppError from '../utils/appError';
+import Email from '../utils/emails';
+import crypto from 'crypto';
+import { authenticator } from 'otplib';
+import { User, IUserEmail } from '../@types/index';
+import redis from '../utils/redis';
 
-const isProd = process.env.NODE_ENV === "production";
+const isProd = process.env.NODE_ENV === 'production';
 
 const verifyToken = (token: string, secret: string): Promise<any> => {
   return new Promise((resolve, reject) => {
@@ -24,13 +24,13 @@ const signAccessToken = (id: string) => {
   const secretKey = process.env.JWT_SECRET;
 
   if (!secretKey) {
-    throw new Error("JWT_SECRET is not defined!");
+    throw new Error('JWT_SECRET is not defined!');
   }
 
   const payload = { userId: id };
 
   const optionsAccess: jwt.SignOptions = {
-    expiresIn: "1h",
+    expiresIn: '1h',
   };
 
   return jwt.sign(payload, secretKey, optionsAccess);
@@ -40,31 +40,31 @@ const createSendToken = async (
   user: User,
   statusCode: number,
   req: Request,
-  res: Response
+  res: Response,
 ) => {
-  const sessionId = crypto.randomBytes(16).toString("hex");
+  const sessionId = crypto.randomBytes(16).toString('hex');
 
   const ttlSeconds = 60 * 60 * 24 * 7;
 
   const accessToken = signAccessToken(user._id as string);
 
   if (isProd) {
-    res.cookie("sessionId", sessionId, {
+    res.cookie('sessionId', sessionId, {
       expires: new Date(Date.now() + ttlSeconds * 1000),
       httpOnly: true,
       secure: true,
-      sameSite: "none",
-      path: "/",
-      domain: ".domiquefusion.store",
+      sameSite: 'none',
+      path: '/',
+      domain: '.domiquefusion.store',
     });
   }
 
-  await redis.set(`session:${sessionId}`, accessToken, "EX", ttlSeconds);
+  await redis.set(`session:${sessionId}`, accessToken, 'EX', ttlSeconds);
 
   user.password = undefined;
 
   const responseData: any = {
-    status: "success",
+    status: 'success',
     data: {
       user,
     },
@@ -93,7 +93,7 @@ export const signup = catchAsync(async (req, res, next) => {
   const user = await UserModel.findOne({ email });
 
   if (user) {
-    return next(new AppError("Email is existed!", 401));
+    return next(new AppError('Email is existed!', 401));
   }
 
   const requiredFields: Record<string, any> = {
@@ -110,21 +110,21 @@ export const signup = catchAsync(async (req, res, next) => {
 
   const missingFields = (
     Object.keys(requiredFields) as Array<keyof typeof requiredFields>
-  ).filter((key) => !requiredFields[key]);
+  ).filter(key => !requiredFields[key]);
 
   if (missingFields.length) {
     return next(
-      new AppError(`Missing Fields: ${missingFields.join(", ")} `, 400)
+      new AppError(`Missing Fields: ${missingFields.join(', ')} `, 400),
     );
   }
 
   authenticator.options = { step: 90 };
 
-  const secret = process.env.OTP_KEY_SECRET || "";
+  const secret = process.env.OTP_KEY_SECRET || '';
 
   const otp = authenticator.generate(secret);
 
-  await redis.set(`otp:${email}`, otp, "EX", 300);
+  await redis.set(`otp:${email}`, otp, 'EX', 300);
 
   const userBody = {
     fullName,
@@ -138,9 +138,9 @@ export const signup = catchAsync(async (req, res, next) => {
     address,
   } as User;
 
-  await new Email(userBody, "", otp).sendOTP();
+  await new Email(userBody, '', otp).sendOTP();
 
-  res.json({ message: "OTP is sent, please check your email!" });
+  res.json({ message: 'OTP is sent, please check your email!' });
 });
 
 export const verifyOtp = catchAsync(async (req, res, next) => {
@@ -173,17 +173,17 @@ export const verifyOtp = catchAsync(async (req, res, next) => {
   } as User;
 
   if (!userOtp) {
-    return next(new AppError("OTP is null. Please enter OTP!", 400));
+    return next(new AppError('OTP is null. Please enter OTP!', 400));
   }
 
   const storedOtp = await redis.get(`otp:${email}`);
 
   if (!storedOtp) {
-    return next(new AppError("OTP expired or invalid", 401));
+    return next(new AppError('OTP expired or invalid', 401));
   }
 
   if (userOtp !== storedOtp) {
-    return next(new AppError("OTP is incorrect. Please enter OTP again", 401));
+    return next(new AppError('OTP is incorrect. Please enter OTP again', 401));
   }
 
   await redis.del(`otp:${email}`);
@@ -194,7 +194,9 @@ export const verifyOtp = catchAsync(async (req, res, next) => {
 
   await new Email(newUser, url).sendWelcome();
 
-  createSendToken(newUser, 201, req, res);
+  res
+    .status(200)
+    .json({ status: 'success', message: 'Create account successfully!' });
 });
 
 export const login = catchAsync(async (req, res, next) => {
@@ -202,20 +204,20 @@ export const login = catchAsync(async (req, res, next) => {
 
   // 1) Check if email and password exist
   if (!email || !password) {
-    return next(new AppError("Please provide email and password!", 400));
+    return next(new AppError('Please provide email and password!', 400));
   }
   // 2) Check if user exists && password is correct
-  const user = await UserModel.findOne({ email }).select("+password");
+  const user = await UserModel.findOne({ email }).select('+password');
 
   if (!user) {
-    return next(new AppError("Email is not exist", 401));
+    return next(new AppError('Email is not exist', 401));
   }
 
   if (
     !user ||
     !(await user.correctPassword(password, user.password as string))
   ) {
-    return next(new AppError("Incorrect email or password", 401));
+    return next(new AppError('Incorrect email or password', 401));
   }
   // 3) If everything ok, send token to client
   createSendToken(user, 200, req, res);
@@ -227,35 +229,38 @@ export const logout = catchAsync(
 
     if (!sessionId) {
       return next(
-        new AppError("You are not logged in! Please log in to get access.", 401)
+        new AppError(
+          'You are not logged in! Please log in to get access.',
+          401,
+        ),
       );
     }
 
     await redis.del(`session:${sessionId}`);
 
-    res.clearCookie("sessionId", {
+    res.clearCookie('sessionId', {
       httpOnly: isProd ? true : false,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     });
 
-    res.status(200).json({ status: "success", message: "Logged out" });
-  }
+    res.status(200).json({ status: 'success', message: 'Logged out' });
+  },
 );
 
 export const protect = catchAsync(async (req, res, next) => {
-  let sessionId = "";
+  let sessionId = '';
   if (
     req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer")
+    req.headers.authorization.startsWith('Bearer')
   ) {
-    sessionId = req.headers.authorization.split(" ")[1];
+    sessionId = req.headers.authorization.split(' ')[1];
   } else {
     sessionId = req.cookies.sessionId;
   }
   if (!sessionId) {
     return next(
-      new AppError("You are not logged in! Please log in to get access.", 401)
+      new AppError('You are not logged in! Please log in to get access.', 401),
     );
   }
 
@@ -263,7 +268,7 @@ export const protect = catchAsync(async (req, res, next) => {
   const sessionData = await redis.get(key);
 
   if (!sessionData) {
-    return res.status(401).json({ message: "Session expired" });
+    return res.status(401).json({ message: 'Session expired' });
   }
 
   const ttlSeconds = 60 * 60 * 24 * 7;
@@ -271,7 +276,7 @@ export const protect = catchAsync(async (req, res, next) => {
 
   const decoded = await verifyToken(
     sessionData,
-    process.env.JWT_SECRET as string
+    process.env.JWT_SECRET as string,
   );
 
   const currentUser = await UserModel.findById(decoded.userId);
@@ -279,19 +284,19 @@ export const protect = catchAsync(async (req, res, next) => {
   if (!currentUser) {
     return next(
       new AppError(
-        "The user belonging to this token does on longer exits.",
-        401
-      )
+        'The user belonging to this token does on longer exits.',
+        401,
+      ),
     );
   }
   if (isProd) {
-    res.cookie("sessionId", sessionId, {
+    res.cookie('sessionId', sessionId, {
       expires: new Date(Date.now() + ttlSeconds * 1000),
       httpOnly: true,
       secure: true,
-      sameSite: "none",
-      path: "/",
-      domain: ".domiquefusion.store",
+      sameSite: 'none',
+      path: '/',
+      domain: '.domiquefusion.store',
     });
   }
 
@@ -303,14 +308,14 @@ export const protect = catchAsync(async (req, res, next) => {
 export const isLoggedIn = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
-  let sessionId = "";
+  let sessionId = '';
   if (
     req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer")
+    req.headers.authorization.startsWith('Bearer')
   ) {
-    sessionId = req.headers.authorization.split(" ")[1];
+    sessionId = req.headers.authorization.split(' ')[1];
   } else {
     sessionId = req.cookies.sessionId;
   }
@@ -326,7 +331,7 @@ export const isLoggedIn = async (
       // 1) verify token
       const decoded = await verifyToken(
         sessionData,
-        process.env.JWT_SECRET as string
+        process.env.JWT_SECRET as string,
       );
 
       // 2) Check if user still exists
@@ -344,14 +349,14 @@ export const isLoggedIn = async (
       const newAccessToken = signAccessToken(currentUser._id as string);
       const ttlSeconds = 60 * 60 * 24 * 7;
 
-      await redis.set(`session:${sessionId}`, newAccessToken, "EX", ttlSeconds);
+      await redis.set(`session:${sessionId}`, newAccessToken, 'EX', ttlSeconds);
 
       // THERE IS A LOGGED IN USER
       res.locals.user = currentUser;
       return next();
     } catch (err) {
       if (!res.locals.user) {
-        return res.status(401).json({ message: "You must be logged in" });
+        return res.status(401).json({ message: 'You must be logged in' });
       }
       return next();
     }
@@ -361,11 +366,11 @@ export const isLoggedIn = async (
 
 export const restrictTo = (...roles: any) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    const role = req.user?.role || "";
+    const role = req.user?.role || '';
 
     if (!roles.includes(role)) {
       return next(
-        new AppError("You do not have permission to perform this action", 403)
+        new AppError('You do not have permission to perform this action', 403),
       );
     }
 
@@ -379,18 +384,18 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
 
   authenticator.options = { step: 90 };
 
-  const secret = process.env.OTP_KEY_SECRET || "";
+  const secret = process.env.OTP_KEY_SECRET || '';
 
   const otp = authenticator.generate(secret);
 
   if (!user) {
-    return next(new AppError("There is no user with email address.", 404));
+    return next(new AppError('There is no user with email address.', 404));
   }
 
   user.otpCode = otp;
   user.otpExpires = new Date(Date.now() + 90 * 1000);
 
-  await redis.set(`otp:${user.email}`, otp, "EX", 300);
+  await redis.set(`otp:${user.email}`, otp, 'EX', 300);
   // 2) Generate the random reset token
   const resetToken = user.createPasswordResetToken();
 
@@ -403,8 +408,8 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
     await new Email(user, resetURL, otp).sendPasswordReset();
 
     res.status(200).json({
-      status: "success",
-      message: "Token sent to email!",
+      status: 'success',
+      message: 'Token sent to email!',
     });
   } catch (err) {
     user.passwordResetToken = undefined;
@@ -413,9 +418,9 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
 
     return next(
       new AppError(
-        "There was an error sending the email. Try again later!",
-        500
-      )
+        'There was an error sending the email. Try again later!',
+        500,
+      ),
     );
   }
 });
@@ -426,20 +431,20 @@ export const resendOtp = catchAsync(async (req, res, next) => {
   const { email } = req.body;
 
   if (!email) {
-    return next(new AppError("Email is required", 400));
+    return next(new AppError('Email is required', 400));
   }
   if (!user) {
-    return next(new AppError("There is no user with email address.", 404));
+    return next(new AppError('There is no user with email address.', 404));
   }
 
   authenticator.options = { step: 90 };
-  const secret = process.env.OTP_KEY_SECRET || "";
+  const secret = process.env.OTP_KEY_SECRET || '';
   const newOtp = authenticator.generate(secret);
 
   user.otpCode = newOtp;
   user.otpExpires = new Date(Date.now() + 90 * 1000);
 
-  await redis.set(`otp:${email}`, newOtp, "EX", 300);
+  await redis.set(`otp:${email}`, newOtp, 'EX', 300);
 
   const resetToken = user.createPasswordResetToken();
   await user.save({ validateBeforeSave: false });
@@ -449,11 +454,11 @@ export const resendOtp = catchAsync(async (req, res, next) => {
     await new Email(user, resetURL, newOtp).sendPasswordReset();
 
     res.status(200).json({
-      status: "success",
-      message: "New OTP sent to email!",
+      status: 'success',
+      message: 'New OTP sent to email!',
     });
   } catch (error) {
-    return next(new AppError("Error sending email. Try again later!", 500));
+    return next(new AppError('Error sending email. Try again later!', 500));
   }
 });
 
@@ -461,16 +466,16 @@ export const resetPassword = catchAsync(async (req, res, next) => {
   const { otp, password, passwordConfirm, email } = req.body;
 
   if (!email) {
-    return next(new AppError("Email is required", 400));
+    return next(new AppError('Email is required', 400));
   }
   // 1) Get user based on the token
   const hashedToken = crypto
-    .createHash("sha256")
+    .createHash('sha256')
     .update(req.params.token)
-    .digest("hex");
+    .digest('hex');
 
   if (!otp) {
-    return next(new AppError("OTP is null. Please enter OTP!", 400));
+    return next(new AppError('OTP is null. Please enter OTP!', 400));
   }
 
   const user = await UserModel.findOne({
@@ -479,23 +484,23 @@ export const resetPassword = catchAsync(async (req, res, next) => {
   });
 
   if (!user) {
-    return next(new AppError("Token is invalid or has expired", 400));
+    return next(new AppError('Token is invalid or has expired', 400));
   }
 
   const storedOtp = await redis.get(`otp:${email}`);
 
   if (!user || !user.otpCode || !user.otpExpires || !storedOtp) {
-    return next(new AppError("Invalid OTP request", 400));
+    return next(new AppError('Invalid OTP request', 400));
   }
 
   if (user.otpExpires < new Date()) {
-    return next(new AppError("OTP has expired. Please request a new one", 400));
+    return next(new AppError('OTP has expired. Please request a new one', 400));
   }
 
   const isValidOtp = otp === storedOtp || otp === user.otpCode;
 
   if (!isValidOtp) {
-    return next(new AppError("OTP is invalid. Please enter OTP again", 401));
+    return next(new AppError('OTP is invalid. Please enter OTP again', 401));
   }
 
   await redis.del(`otp:${email}`);
@@ -516,18 +521,18 @@ export const resetPassword = catchAsync(async (req, res, next) => {
 
 export const updatePassword = catchAsync(async (req, res, next) => {
   // 1) Get user from collection
-  const idUser = req.user?.id || "";
-  const user = await UserModel.findById(idUser).select("+password");
+  const idUser = req.user?.id || '';
+  const user = await UserModel.findById(idUser).select('+password');
 
   // 2) Check if POSTed current password is correct
   if (
     !user ||
     !(await user.correctPassword(
       req.body.passwordCurrent,
-      user.password as string
+      user.password as string,
     ))
   ) {
-    return next(new AppError("Your current password is wrong.", 401));
+    return next(new AppError('Your current password is wrong.', 401));
   }
 
   // 3) If so, update password
@@ -546,16 +551,16 @@ export const googleAuthCallback = catchAsync(
       const { user, sessionId } = req.user as any;
 
       if (!user || !sessionId) {
-        return res.status(400).json({ message: "Authentication failed" });
+        return res.status(400).json({ message: 'Authentication failed' });
       }
 
-      res.cookie("sessionId", sessionId, {
+      res.cookie('sessionId', sessionId, {
         expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         httpOnly: isProd ? true : false,
         secure: isProd ? true : false,
-        sameSite: isProd ? "none" : "lax",
-        path: "/",
-        domain: isProd ? ".domiquefusion.store" : undefined,
+        sameSite: isProd ? 'none' : 'lax',
+        path: '/',
+        domain: isProd ? '.domiquefusion.store' : undefined,
       });
 
       const redirectUrl = isProd
@@ -564,7 +569,7 @@ export const googleAuthCallback = catchAsync(
 
       return res.redirect(redirectUrl);
     } catch (error) {
-      return res.status(500).json({ message: "Internal Server Error" });
+      return res.status(500).json({ message: 'Internal Server Error' });
     }
-  }
+  },
 );
