@@ -8,6 +8,7 @@ import crypto from 'crypto';
 import { authenticator } from 'otplib';
 import { User, IUserEmail } from '../@types/index';
 import redis from '../utils/redis';
+import { ERROR_KEY } from '../utils/errorKey';
 
 const isProd = process.env.NODE_ENV === 'production';
 
@@ -93,7 +94,9 @@ export const signup = catchAsync(async (req, res, next) => {
   const user = await UserModel.findOne({ email });
 
   if (user) {
-    return next(new AppError('Email is existed!', 401));
+    return next(
+      new AppError(ERROR_KEY.EMAIL_IS_EXISTED, 'Email is existed!', 401),
+    );
   }
 
   const requiredFields: Record<string, any> = {
@@ -114,7 +117,11 @@ export const signup = catchAsync(async (req, res, next) => {
 
   if (missingFields.length) {
     return next(
-      new AppError(`Missing Fields: ${missingFields.join(', ')} `, 400),
+      new AppError(
+        ERROR_KEY.MISSING_FIELDS,
+        `Missing Fields: ${missingFields.join(', ')} `,
+        400,
+      ),
     );
   }
 
@@ -173,17 +180,31 @@ export const verifyOtp = catchAsync(async (req, res, next) => {
   } as User;
 
   if (!userOtp) {
-    return next(new AppError('OTP is null. Please enter OTP!', 400));
+    return next(
+      new AppError(
+        ERROR_KEY.OTP_IS_NULL,
+        'OTP is null. Please enter OTP!',
+        400,
+      ),
+    );
   }
 
   const storedOtp = await redis.get(`otp:${email}`);
 
   if (!storedOtp) {
-    return next(new AppError('OTP expired or invalid', 401));
+    return next(
+      new AppError(ERROR_KEY.OTP_IS_EXPIRED, 'OTP expired or invalid', 401),
+    );
   }
 
   if (userOtp !== storedOtp) {
-    return next(new AppError('OTP is incorrect. Please enter OTP again', 401));
+    return next(
+      new AppError(
+        ERROR_KEY.OTP_IS_INCORRECT,
+        'OTP is incorrect. Please enter OTP again',
+        401,
+      ),
+    );
   }
 
   await redis.del(`otp:${email}`);
@@ -204,20 +225,34 @@ export const login = catchAsync(async (req, res, next) => {
 
   // 1) Check if email and password exist
   if (!email || !password) {
-    return next(new AppError('Please provide email and password!', 400));
+    return next(
+      new AppError(
+        ERROR_KEY.MISSING_EMAIL_AND_PASSWORD,
+        'Please provide email and password!',
+        400,
+      ),
+    );
   }
   // 2) Check if user exists && password is correct
   const user = await UserModel.findOne({ email }).select('+password');
 
   if (!user) {
-    return next(new AppError('Email is not exist', 401));
+    return next(
+      new AppError(ERROR_KEY.EMAIL_IS_EXISTED, 'Email is not exist', 401),
+    );
   }
 
   if (
     !user ||
     !(await user.correctPassword(password, user.password as string))
   ) {
-    return next(new AppError('Incorrect email or password', 401));
+    return next(
+      new AppError(
+        ERROR_KEY.INCORRECT_EMAIL_OR_PASSWORD,
+        'Incorrect email or password',
+        401,
+      ),
+    );
   }
   // 3) If everything ok, send token to client
   createSendToken(user, 200, req, res);
@@ -230,6 +265,7 @@ export const logout = catchAsync(
     if (!sessionId) {
       return next(
         new AppError(
+          ERROR_KEY.ACCOUNT_NOT_LOGGED_IN,
           'You are not logged in! Please log in to get access.',
           401,
         ),
@@ -260,7 +296,11 @@ export const protect = catchAsync(async (req, res, next) => {
   }
   if (!sessionId) {
     return next(
-      new AppError('You are not logged in! Please log in to get access.', 401),
+      new AppError(
+        ERROR_KEY.ACCOUNT_NOT_LOGGED_IN,
+        'You are not logged in! Please log in to get access.',
+        401,
+      ),
     );
   }
 
@@ -284,6 +324,7 @@ export const protect = catchAsync(async (req, res, next) => {
   if (!currentUser) {
     return next(
       new AppError(
+        ERROR_KEY.TOKEN_IS_INVALID,
         'The user belonging to this token does on longer exits.',
         401,
       ),
@@ -370,7 +411,11 @@ export const restrictTo = (...roles: any) => {
 
     if (!roles.includes(role)) {
       return next(
-        new AppError('You do not have permission to perform this action', 403),
+        new AppError(
+          ERROR_KEY.NOT_HAVE_PERMISSION,
+          'You do not have permission to perform this action',
+          403,
+        ),
       );
     }
 
@@ -389,7 +434,13 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
   const otp = authenticator.generate(secret);
 
   if (!user) {
-    return next(new AppError('There is no user with email address.', 404));
+    return next(
+      new AppError(
+        ERROR_KEY.EMAIL_IS_NOT_EXISTED,
+        'There is no user with email address.',
+        404,
+      ),
+    );
   }
 
   user.otpCode = otp;
@@ -418,6 +469,7 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
 
     return next(
       new AppError(
+        ERROR_KEY.SENDING_EMAIL_FAIL,
         'There was an error sending the email. Try again later!',
         500,
       ),
@@ -431,10 +483,18 @@ export const resendOtp = catchAsync(async (req, res, next) => {
   const { email } = req.body;
 
   if (!email) {
-    return next(new AppError('Email is required', 400));
+    return next(
+      new AppError(ERROR_KEY.EMAIL_IS_REQUIRED, 'Email is required', 400),
+    );
   }
   if (!user) {
-    return next(new AppError('There is no user with email address.', 404));
+    return next(
+      new AppError(
+        ERROR_KEY.EMAIL_IS_NOT_EXISTED,
+        'There is no user with email address.',
+        404,
+      ),
+    );
   }
 
   authenticator.options = { step: 90 };
@@ -458,7 +518,13 @@ export const resendOtp = catchAsync(async (req, res, next) => {
       message: 'New OTP sent to email!',
     });
   } catch (error) {
-    return next(new AppError('Error sending email. Try again later!', 500));
+    return next(
+      new AppError(
+        ERROR_KEY.SENDING_EMAIL_FAIL,
+        'Error sending email. Try again later!',
+        500,
+      ),
+    );
   }
 });
 
@@ -466,7 +532,9 @@ export const resetPassword = catchAsync(async (req, res, next) => {
   const { otp, password, passwordConfirm, email } = req.body;
 
   if (!email) {
-    return next(new AppError('Email is required', 400));
+    return next(
+      new AppError(ERROR_KEY.EMAIL_IS_REQUIRED, 'Email is required', 400),
+    );
   }
   // 1) Get user based on the token
   const hashedToken = crypto
@@ -475,7 +543,13 @@ export const resetPassword = catchAsync(async (req, res, next) => {
     .digest('hex');
 
   if (!otp) {
-    return next(new AppError('OTP is null. Please enter OTP!', 400));
+    return next(
+      new AppError(
+        ERROR_KEY.OTP_IS_NULL,
+        'OTP is null. Please enter OTP!',
+        400,
+      ),
+    );
   }
 
   const user = await UserModel.findOne({
@@ -484,23 +558,43 @@ export const resetPassword = catchAsync(async (req, res, next) => {
   });
 
   if (!user) {
-    return next(new AppError('Token is invalid or has expired', 400));
+    return next(
+      new AppError(
+        ERROR_KEY.TOKEN_IS_INVALID,
+        'Token is invalid or has expired',
+        400,
+      ),
+    );
   }
 
   const storedOtp = await redis.get(`otp:${email}`);
 
   if (!user || !user.otpCode || !user.otpExpires || !storedOtp) {
-    return next(new AppError('Invalid OTP request', 400));
+    return next(
+      new AppError(ERROR_KEY.INVALID_OTP_REQUEST, 'Invalid OTP request', 400),
+    );
   }
 
   if (user.otpExpires < new Date()) {
-    return next(new AppError('OTP has expired. Please request a new one', 400));
+    return next(
+      new AppError(
+        ERROR_KEY.OTP_IS_EXPIRED,
+        'OTP has expired. Please request a new one',
+        400,
+      ),
+    );
   }
 
   const isValidOtp = otp === storedOtp || otp === user.otpCode;
 
   if (!isValidOtp) {
-    return next(new AppError('OTP is invalid. Please enter OTP again', 401));
+    return next(
+      new AppError(
+        ERROR_KEY.INVALID_OTP_REQUEST,
+        'OTP is invalid. Please enter OTP again',
+        401,
+      ),
+    );
   }
 
   await redis.del(`otp:${email}`);
@@ -532,7 +626,13 @@ export const updatePassword = catchAsync(async (req, res, next) => {
       user.password as string,
     ))
   ) {
-    return next(new AppError('Your current password is wrong.', 401));
+    return next(
+      new AppError(
+        ERROR_KEY.WRONG_CURRENT_PASSWORD,
+        'Your current password is wrong.',
+        401,
+      ),
+    );
   }
 
   // 3) If so, update password

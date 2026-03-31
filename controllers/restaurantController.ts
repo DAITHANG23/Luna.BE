@@ -1,18 +1,19 @@
-import { NextFunction, Request, Response } from "express";
-import multer, { FileFilterCallback } from "multer";
-import sharp from "sharp";
-import catchAsync from "../utils/catchAsync";
-import AppError from "../utils/appError";
+import { NextFunction, Request, Response } from 'express';
+import multer, { FileFilterCallback } from 'multer';
+import sharp from 'sharp';
+import catchAsync from '../utils/catchAsync';
+import AppError from '../utils/appError';
 import {
   getOne,
   getAll,
   updateOne,
   deleteOne,
   createOne,
-} from "../controllers/handlerFactory";
-import Restaurant from "../models/restaurantModel";
-import ConceptRestaurantModel from "../models/conceptModel";
-import mongoose from "mongoose";
+} from '../controllers/handlerFactory';
+import Restaurant from '../models/restaurantModel';
+import ConceptRestaurantModel from '../models/conceptModel';
+import mongoose from 'mongoose';
+import { ERROR_KEY } from '../utils/errorKey';
 // const multerStorage = multer.memoryStorage();
 
 // const multerFilter = (
@@ -84,39 +85,51 @@ export const getAllRestaurantsInConcept = catchAsync(
 
     const searchText = req.query.searchText as string;
 
-    if (!id || typeof id !== "string") {
-      return next(new AppError("Please provide id concept", 400));
+    if (!id || typeof id !== 'string') {
+      return next(
+        new AppError(
+          ERROR_KEY.MISSING_ID_CONCEPT,
+          'Please provide id concept',
+          400,
+        ),
+      );
     }
 
     const concept = await ConceptRestaurantModel.findById(id);
 
     if (!concept) {
-      return next(new AppError("Concept is not exited !", 400));
+      return next(
+        new AppError(
+          ERROR_KEY.CONCEPT_IS_NOT_EXITED,
+          'Concept is not exited !',
+          400,
+        ),
+      );
     }
 
     let filterObj: any = { concept: new mongoose.Types.ObjectId(id as string) };
     if (searchText) {
       filterObj.$or = [
-        { name: { $regex: searchText, $options: "i" } },
-        { type: { $regex: searchText, $options: "i" } },
-        { address: { $regex: searchText, $options: "i" } },
+        { name: { $regex: searchText, $options: 'i' } },
+        { type: { $regex: searchText, $options: 'i' } },
+        { address: { $regex: searchText, $options: 'i' } },
       ];
     }
 
     const restaurants = await Restaurant.find(filterObj);
 
     res.status(200).json({
-      status: "success",
+      status: 'success',
       results: restaurants.length,
       data: {
         restaurants,
       },
     });
-  }
+  },
 );
 
 export const getAllRestaurants = getAll(Restaurant);
-export const getRestaurant = getOne(Restaurant, { path: "reviews" });
+export const getRestaurant = getOne(Restaurant, { path: 'reviews' });
 export const createRestaurant = createOne(Restaurant);
 export const updateRestaurant = updateOne(Restaurant);
 export const deleteRestaurant = deleteOne(Restaurant);
@@ -129,13 +142,13 @@ export const getRestaurantStats = catchAsync(
       },
       {
         $group: {
-          _id: { $toUpper: "$type" },
+          _id: { $toUpper: '$type' },
           numRestaurants: { $sum: 1 },
-          numRatings: { $sum: "$ratingsQuantity" },
-          avgRating: { $avg: "$ratingsAverage" },
-          avgPrice: { $avg: "$price" },
-          minPrice: { $min: "$price" },
-          maxPrice: { $max: "$price" },
+          numRatings: { $sum: '$ratingsQuantity' },
+          avgRating: { $avg: '$ratingsAverage' },
+          avgPrice: { $avg: '$price' },
+          minPrice: { $min: '$price' },
+          maxPrice: { $max: '$price' },
         },
       },
       {
@@ -144,12 +157,12 @@ export const getRestaurantStats = catchAsync(
     ]);
 
     res.status(200).json({
-      status: "success",
+      status: 'success',
       data: {
         stats,
       },
     });
-  }
+  },
 );
 
 export const getRestaurantsWithin = catchAsync(
@@ -157,21 +170,22 @@ export const getRestaurantsWithin = catchAsync(
     const { distance, latlng, unit } = req.params as {
       distance: string;
       latlng: string;
-      unit: "mi" | "km";
+      unit: 'mi' | 'km';
     };
-    const [lat, lng] = latlng.split(",");
+    const [lat, lng] = latlng.split(',');
 
     const parsedDistance = parseFloat(distance);
 
     const radius =
-      unit === "mi" ? parsedDistance / 3963.2 : parsedDistance / 6378.1;
+      unit === 'mi' ? parsedDistance / 3963.2 : parsedDistance / 6378.1;
 
     if (!lat || !lng) {
       next(
         new AppError(
-          "Please provide latitutr and longitude in the format lat,lng.",
-          400
-        )
+          ERROR_KEY.MISSING_LAT_LNG_FIELDS,
+          'Please provide latitutr and longitude in the format lat,lng.',
+          400,
+        ),
       );
     }
 
@@ -180,41 +194,49 @@ export const getRestaurantsWithin = catchAsync(
     });
 
     res.status(200).json({
-      status: "success",
+      status: 'success',
       results: tours.length,
       data: {
         data: tours,
       },
     });
-  }
+  },
 );
 
 export const getDistances = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const { latlng, unit } = req.params as { latlng: string; unit: string };
 
-    const parts = latlng.split(",");
+    const parts = latlng.split(',');
     if (parts.length !== 2) {
       return next(
         new AppError(
-          "Please provide latitude and longitude in the format lat,lng.",
-          400
-        )
+          ERROR_KEY.MISSING_LAT_LNG_FIELDS,
+          'Please provide latitude and longitude in the format lat,lng.',
+          400,
+        ),
       );
     }
     const [lat, lng] = parts.map(Number);
     if (isNaN(lat) || isNaN(lng)) {
-      return next(new AppError("Invalid latitude or longitude values.", 400));
+      return next(
+        new AppError(
+          ERROR_KEY.MISSING_LAT_LNG_FIELDS,
+          'Invalid latitude or longitude values.',
+          400,
+        ),
+      );
     }
 
-    const multiplier = unit === "mi" ? 0.000621371 : 0.001;
+    const multiplier = unit === 'mi' ? 0.000621371 : 0.001;
 
     if (!lat || !lng) {
       next(
         new AppError(
-          "Please provide latitutr and longitude in the format lat,lng.",
-          400
-        )
+          ERROR_KEY.MISSING_LAT_LNG_FIELDS,
+          'Please provide latitutr and longitude in the format lat,lng.',
+          400,
+        ),
       );
     }
 
@@ -222,10 +244,10 @@ export const getDistances = catchAsync(
       {
         $geoNear: {
           near: {
-            type: "Point",
+            type: 'Point',
             coordinates: [lng * 1, lat * 1],
           },
-          distanceField: "distance",
+          distanceField: 'distance',
           distanceMultiplier: multiplier,
         },
       },
@@ -238,10 +260,10 @@ export const getDistances = catchAsync(
     ]);
 
     res.status(200).json({
-      status: "success",
+      status: 'success',
       data: {
         data: distances,
       },
     });
-  }
+  },
 );

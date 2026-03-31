@@ -1,14 +1,21 @@
-import { NextFunction, Request, Response } from "express";
-import NotificationModel from "../models/notificationModel";
-import catchAsync from "../utils/catchAsync";
-import { deleteOne, getAll, getOne } from "./handlerFactory";
-import AppError from "../utils/appError";
+import { NextFunction, Request, Response } from 'express';
+import NotificationModel from '../models/notificationModel';
+import catchAsync from '../utils/catchAsync';
+import { deleteOne, getAll, getOne } from './handlerFactory';
+import AppError from '../utils/appError';
+import { ERROR_KEY } from '../utils/errorKey';
 
 export const checkReadNotification = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.body;
     if (!id) {
-      return next(new AppError("Please provide ID of notification", 400));
+      return next(
+        new AppError(
+          ERROR_KEY.MISSING_ID_NOTIFICATION,
+          'Please provide ID of notification',
+          400,
+        ),
+      );
     }
 
     const updatedUser = await NotificationModel.findByIdAndUpdate(
@@ -19,19 +26,19 @@ export const checkReadNotification = catchAsync(
       {
         new: true,
         runValidators: true,
-      }
+      },
     );
 
     res.status(200).json({
-      status: "success",
+      status: 'success',
       data: { data: updatedUser },
     });
-  }
+  },
 );
 
-export const getAllNotifications = getAll(NotificationModel,  {
+export const getAllNotifications = getAll(NotificationModel, {
   filterBuilder(req) {
-    if (req.user?.role === "customer") {
+    if (req.user?.role === 'customer') {
       return { recipient: req.user._id };
     }
     return {};
@@ -41,13 +48,10 @@ export const getAllNotifications = getAll(NotificationModel,  {
     const limit = Number(req.query.limit) || 20;
     const offset = Number(req.query.offset) || 0;
 
-    return query
-      .sort("-createdAt")
-      .skip(offset)
-      .limit(limit);
+    return query.sort('-createdAt').skip(offset).limit(limit);
   },
 });
 export const getNotification = getOne(NotificationModel, {
-  path: "restaurant recipient",
+  path: 'restaurant recipient',
 });
 export const deleteNotification = deleteOne(NotificationModel);
