@@ -1,6 +1,6 @@
-import mongoose from "mongoose";
-import { INotification } from "../@types";
-import { Schema } from "mongoose";
+import mongoose from 'mongoose';
+import { INotification } from '../@types';
+import { Schema } from 'mongoose';
 
 const notificationSchema = new mongoose.Schema<INotification>({
   read: { type: Boolean, required: true, default: false },
@@ -8,12 +8,12 @@ const notificationSchema = new mongoose.Schema<INotification>({
   message: { type: String, required: true },
   recipient: {
     type: Schema.Types.ObjectId,
-    ref: "User",
+    ref: 'User',
     required: true,
   },
   restaurant: {
     type: Schema.Types.ObjectId,
-    ref: "Restaurant",
+    ref: 'Restaurant',
     required: true,
   },
   //   booking: {
@@ -25,12 +25,12 @@ const notificationSchema = new mongoose.Schema<INotification>({
   type: {
     type: String,
     enum: [
-      "bookingCreated",
-      "bookingConfirmed",
-      "bookingCanceled",
-      "bookingReminder",
-      "bookingCompleted",
-      "bookingInProgress",
+      'bookingCreated',
+      'bookingConfirmed',
+      'bookingCanceled',
+      'bookingReminder',
+      'bookingCompleted',
+      'bookingInProgress',
     ],
     required: true,
   },
@@ -41,5 +41,5 @@ const notificationSchema = new mongoose.Schema<INotification>({
   },
 });
 
-const NotificationModel = mongoose.model("Notification", notificationSchema);
+const NotificationModel = mongoose.model('Notification', notificationSchema);
 export default NotificationModel;

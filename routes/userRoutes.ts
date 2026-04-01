@@ -1,4 +1,4 @@
-import express from "express";
+import express from 'express';
 import {
   signup,
   login,
@@ -10,7 +10,7 @@ import {
   restrictTo,
   verifyOtp,
   resendOtp,
-} from "../controllers/authController";
+} from '@controllers/authController';
 
 import {
   getMe,
@@ -28,40 +28,40 @@ import {
   deleteCheckInConcept,
   checkInConcept,
   // singleUpload,
-} from "../controllers/userController";
+} from '@controllers/userController';
 
 const router = express.Router();
 
-router.post("/signup", signup);
-router.post("/login", login);
-router.post("/verify-otp", verifyOtp);
-router.post("/resendOtp", resendOtp);
+router.post('/signup', signup);
+router.post('/login', login);
+router.post('/verify-otp', verifyOtp);
+router.post('/resendOtp', resendOtp);
 
-router.post("/logout", logout);
-router.post("/forgotPassword", forgotPassword);
-router.patch("/resetPassword/:token", resetPassword);
+router.post('/logout', logout);
+router.post('/forgotPassword', forgotPassword);
+router.patch('/resetPassword/:token', resetPassword);
 
 // Protect all routes after this middleware
 router.use(protect);
 
-router.patch("/updateMyPassword", updatePassword);
-router.get("/me", getMe, getUser);
+router.patch('/updateMyPassword', updatePassword);
+router.get('/me', getMe, getUser);
 router.patch(
-  "/updateMe",
+  '/updateMe',
   uploadUserPhoto,
   // singleUpload,
   resizeUserPhoto,
-  updateMe
+  updateMe,
 );
-router.post("/favorites", favoritesConcepts);
-router.delete("/deleteFavoriteConcept", deleteFavoriteConcept);
-router.post("/checkInConcept", checkInConcept);
-router.delete("/deleteCheckInConcept", deleteCheckInConcept);
-router.delete("/deleteMe", deleteMe);
+router.post('/favorites', favoritesConcepts);
+router.delete('/deleteFavoriteConcept', deleteFavoriteConcept);
+router.post('/checkInConcept', checkInConcept);
+router.delete('/deleteCheckInConcept', deleteCheckInConcept);
+router.delete('/deleteMe', deleteMe);
 
-router.use(restrictTo("admin", "restaurantManager", "conceptManager"));
+router.use(restrictTo('admin', 'restaurantManager', 'conceptManager'));
 
-router.route("/").get(getAllUsers).post(createUser);
+router.route('/').get(getAllUsers).post(createUser);
 
-router.route("/:id").get(getUser).patch(updateUser).delete(deleteUser);
+router.route('/:id').get(getUser).patch(updateUser).delete(deleteUser);
 export default router;

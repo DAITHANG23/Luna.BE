@@ -6,12 +6,17 @@
     "strict": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "typeRoots": [
-      "./@types",
-      "./node_modules/@types"
-    ]
+    "typeRoots": ["@types", "./node_modules/@types"],
+    "paths": {
+      "@controllers/*": ["./controllers/*"],
+      "@models/*": ["./models/*"],
+      "@routes/*": ["./routes/*"],
+      "@utils/*": ["./utils/*"],
+      "@views/*": ["./views/*"],
+      "@socket/*": ["./socket/*"],
+      "@jobs/*": ["./jobs/*"],
+      "@server": ["./server.ts"]
+    }
   },
-   "include": [
-    "**/*.ts"
-  ]
+  "include": ["**/*.ts"]
 }

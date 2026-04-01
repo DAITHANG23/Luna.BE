@@ -1,18 +1,19 @@
-import { NextFunction, Request, Response } from "express";
-import multer, { FileFilterCallback } from "multer";
-import sharp from "sharp";
-import catchAsync from "../utils/catchAsync";
-import AppError from "../utils/appError";
+import { NextFunction, Request, Response } from 'express';
+import multer, { FileFilterCallback } from 'multer';
+import sharp from 'sharp';
+import catchAsync from '@utils/catchAsync';
+import AppError from '@utils/appError';
 import {
   getOne,
   getAll,
   updateOne,
   deleteOne,
-} from "../controllers/handlerFactory";
-import { uploadSingleImage } from "../utils/uploadImage";
-import cloudinary from "cloudinary";
-import UserModel from "../models/userModel";
-import mongoose, { Types } from "mongoose";
+} from '@controllers/handlerFactory';
+import { uploadSingleImage } from '@utils/uploadImage';
+import cloudinary from 'cloudinary';
+import UserModel from '@models/userModel';
+import mongoose, { Types } from 'mongoose';
+import { ERROR_KEY } from '@utils/errorKey';
 
 // const multerStorage = multer.diskStorage({
 //   destination: (req, file, cb) => {
@@ -28,14 +29,14 @@ const multerStorage = multer.memoryStorage();
 const multerFilter = (
   req: Request,
   file: Express.Multer.File,
-  cb: FileFilterCallback
+  cb: FileFilterCallback,
 ) => {
-  if (file.mimetype.startsWith("image")) {
+  if (file.mimetype.startsWith('image')) {
     cb(null, true);
   } else {
     cb(
-      new Error("Not an image! Please upload only images.") as unknown as null,
-      false
+      new Error('Not an image! Please upload only images.') as unknown as null,
+      false,
     );
   }
 };
@@ -45,7 +46,7 @@ const upload = multer({
   fileFilter: multerFilter,
 });
 
-export const uploadUserPhoto = upload.single("avatar");
+export const uploadUserPhoto = upload.single('avatar');
 
 export const resizeUserPhoto = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -53,12 +54,12 @@ export const resizeUserPhoto = catchAsync(
 
     req.file.buffer = await sharp(req.file.buffer)
       .resize(500, 500)
-      .toFormat("jpeg")
+      .toFormat('jpeg')
       .jpeg({ quality: 90 })
       .toBuffer();
 
     next();
-  }
+  },
 );
 
 const filterObj = <T extends Record<string, any>>(
@@ -66,7 +67,7 @@ const filterObj = <T extends Record<string, any>>(
   ...allowedFields: (keyof T)[]
 ): Partial<T> => {
   const newObj: Partial<T> = {};
-  Object.keys(obj).forEach((key) => {
+  Object.keys(obj).forEach(key => {
     if (allowedFields.includes(key as keyof T)) {
       newObj[key as keyof T] = obj[key];
     }
@@ -75,7 +76,7 @@ const filterObj = <T extends Record<string, any>>(
 };
 
 export const getMe = (req: Request, res: Response, next: NextFunction) => {
-  const userId = req.user?.id || "";
+  const userId = req.user?.id || '';
 
   req.params.id = userId;
   next();
@@ -83,29 +84,30 @@ export const getMe = (req: Request, res: Response, next: NextFunction) => {
 
 export const updateMe = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const userId = req.user?.id || "";
+    const userId = req.user?.id || '';
 
     // 1) Ngăn chặn cập nhật password ở đây
     if (req.body.password || req.body.passwordConfirm) {
       return next(
         new AppError(
-          "This route is not for password updates. Please use /updateMyPassword.",
-          400
-        )
+          ERROR_KEY.NOT_ALLOW_UPDATE_PASSWORD,
+          'This route is not for password updates. Please use /updateMyPassword.',
+          400,
+        ),
       );
     }
 
     // 2) Lọc bỏ các trường không được phép cập nhật
     const filteredBody = filterObj(
       req.body,
-      "fullName",
-      "email",
-      "address",
-      "numberPhone",
-      "dateOfBirth",
-      "gender",
-      "lastName",
-      "firstName"
+      'fullName',
+      'email',
+      'address',
+      'numberPhone',
+      'dateOfBirth',
+      'gender',
+      'lastName',
+      'firstName',
     );
 
     // 3) Nếu có file ảnh, xử lý upload ảnh lên Cloudinary
@@ -121,16 +123,28 @@ export const updateMe = catchAsync(
         }
 
         // Upload ảnh mới lên Cloudinary
-        const result = await uploadSingleImage(req.file.buffer, "avatarUsers");
+        const result = await uploadSingleImage(req.file.buffer, 'avatarUsers');
         if (!result?.secure_url) {
-          return next(new AppError("Upload to Cloudinary failed", 500));
+          return next(
+            new AppError(
+              ERROR_KEY.UPLOAD_TO_CLOUDINARY_FAILED,
+              'Upload to Cloudinary failed',
+              500,
+            ),
+          );
         }
 
         // Cập nhật thông tin avatar
         filteredBody.avatarUrl = result.secure_url;
         filteredBody.avatarId = result.public_id;
       } catch (error) {
-        return next(new AppError("Internal server error", 500));
+        return next(
+          new AppError(
+            ERROR_KEY.INTERNAL_SERVER_ERROR,
+            'Internal server error',
+            500,
+          ),
+        );
       }
     }
 
@@ -141,17 +155,17 @@ export const updateMe = catchAsync(
       {
         new: true,
         runValidators: true,
-      }
+      },
     );
 
     res.status(200).json({
-      status: "success",
+      status: 'success',
       data: {
         user: updatedUser,
       },
     });
     next();
-  }
+  },
 );
 
 export const favoritesConcepts = catchAsync(
@@ -160,11 +174,23 @@ export const favoritesConcepts = catchAsync(
 
     const user = await UserModel.findOne({ _id: userId });
     if (!user) {
-      return next(new AppError("Token is invalid or has expired", 400));
+      return next(
+        new AppError(
+          ERROR_KEY.TOKEN_IS_INVALID,
+          'Token is invalid or has expired',
+          400,
+        ),
+      );
     }
 
-    if (user.role !== "customer") {
-      return next(new AppError("Only customers can have favorites", 400));
+    if (user.role !== 'customer') {
+      return next(
+        new AppError(
+          ERROR_KEY.ACCOUNT_MUST_BE_CUSTOMER,
+          'Only customers can have favorites',
+          400,
+        ),
+      );
     }
     if (!user.favorites.includes(idConcept)) {
       user.favorites.push(new mongoose.Types.ObjectId(idConcept as string));
@@ -172,12 +198,12 @@ export const favoritesConcepts = catchAsync(
     }
 
     res.status(200).json({
-      status: "success",
+      status: 'success',
       data: {
         user,
       },
     });
-  }
+  },
 );
 
 export const checkInConcept = catchAsync(
@@ -186,26 +212,38 @@ export const checkInConcept = catchAsync(
 
     const user = await UserModel.findOne({ _id: userId });
     if (!user) {
-      return next(new AppError("Token is invalid or has expired", 400));
+      return next(
+        new AppError(
+          ERROR_KEY.TOKEN_IS_INVALID,
+          'Token is invalid or has expired',
+          400,
+        ),
+      );
     }
 
-    if (user.role !== "customer") {
-      return next(new AppError("Only customers can have favorites", 400));
+    if (user.role !== 'customer') {
+      return next(
+        new AppError(
+          ERROR_KEY.ACCOUNT_MUST_BE_CUSTOMER,
+          'Only customers can have favorites',
+          400,
+        ),
+      );
     }
     if (!user.checkInConcepts.includes(idConcept)) {
       user.checkInConcepts.push(
-        new mongoose.Types.ObjectId(idConcept as string)
+        new mongoose.Types.ObjectId(idConcept as string),
       );
       await user.save();
     }
 
     res.status(200).json({
-      status: "success",
+      status: 'success',
       data: {
         user,
       },
     });
-  }
+  },
 );
 
 export const deleteCheckInConcept = catchAsync(
@@ -214,25 +252,37 @@ export const deleteCheckInConcept = catchAsync(
 
     const user = await UserModel.findOne({ _id: userId });
     if (!user) {
-      return next(new AppError("Token is invalid or has expired", 400));
+      return next(
+        new AppError(
+          ERROR_KEY.TOKEN_IS_INVALID,
+          'Token is invalid or has expired',
+          400,
+        ),
+      );
     }
 
-    if (user.role !== "customer") {
-      return next(new AppError("Only customers can have favorites", 400));
+    if (user.role !== 'customer') {
+      return next(
+        new AppError(
+          ERROR_KEY.ACCOUNT_MUST_BE_CUSTOMER,
+          'Only customers can have favorites',
+          400,
+        ),
+      );
     }
 
-    if (user.checkInConcepts.some((fav) => fav.equals(idConcept))) {
+    if (user.checkInConcepts.some(fav => fav.equals(idConcept))) {
       user.checkInConcepts = user.checkInConcepts.filter(
-        (fav) => !fav.equals(idConcept)
+        fav => !fav.equals(idConcept),
       );
       await user.save();
     }
 
     res.status(204).json({
-      status: "success",
+      status: 'success',
       data: null,
     });
-  }
+  },
 );
 
 export const deleteFavoriteConcept = catchAsync(
@@ -241,41 +291,53 @@ export const deleteFavoriteConcept = catchAsync(
 
     const user = await UserModel.findOne({ _id: userId });
     if (!user) {
-      return next(new AppError("Token is invalid or has expired", 400));
+      return next(
+        new AppError(
+          ERROR_KEY.TOKEN_IS_INVALID,
+          'Token is invalid or has expired',
+          400,
+        ),
+      );
     }
 
-    if (user.role !== "customer") {
-      return next(new AppError("Only customers can have favorites", 400));
+    if (user.role !== 'customer') {
+      return next(
+        new AppError(
+          ERROR_KEY.ACCOUNT_MUST_BE_CUSTOMER,
+          'Only customers can have favorites',
+          400,
+        ),
+      );
     }
 
-    if (user.favorites.some((fav) => fav.equals(idConcept))) {
-      user.favorites = user.favorites.filter((fav) => !fav.equals(idConcept));
+    if (user.favorites.some(fav => fav.equals(idConcept))) {
+      user.favorites = user.favorites.filter(fav => !fav.equals(idConcept));
       await user.save();
     }
 
     res.status(204).json({
-      status: "success",
+      status: 'success',
       data: null,
     });
-  }
+  },
 );
 
 export const deleteMe = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const userId = req.user?.id || "";
+    const userId = req.user?.id || '';
     await UserModel.findByIdAndUpdate(userId, { active: false });
 
     res.status(204).json({
-      status: "success",
+      status: 'success',
       data: null,
     });
-  }
+  },
 );
 
 export const createUser = (req: Request, res: Response) => {
   res.status(500).json({
-    status: "error",
-    message: "This route is not defined! Please use /signup instead",
+    status: 'error',
+    message: 'This route is not defined! Please use /signup instead',
   });
 };
 

@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import multer, { FileFilterCallback } from 'multer';
-import catchAsync from '../utils/catchAsync';
-import AppError from '../utils/appError';
+import catchAsync from '@utils/catchAsync';
+import AppError from '@utils/appError';
 import sharp from 'sharp';
 import {
   createOne,
@@ -13,6 +13,7 @@ import {
 import ConceptRestaurantModel from '../models/conceptModel';
 import UserModel from '../models/userModel';
 import redis from '../utils/redis';
+import { ERROR_KEY } from '../utils/errorKey';
 
 const multerStorage = multer.memoryStorage();
 
@@ -48,7 +49,13 @@ export const resizeConceptImages = catchAsync(
     const files = req.files as Record<string, Express.Multer.File[]>;
 
     if (!files.imageCover || !files.images) {
-      return next(new AppError('Please provide imageCover and images', 400));
+      return next(
+        new AppError(
+          ERROR_KEY.MISSING_IMGAGES_IMAGECOVER,
+          'Please provide imageCover and images',
+          400,
+        ),
+      );
     }
     // 1) Cover image
 
@@ -137,12 +144,20 @@ export const conceptReviewPost = catchAsync(
     const { conceptId, score, content } = req.body;
 
     if (!conceptId || typeof conceptId !== 'string') {
-      return next(new AppError('Invalid or missing conceptId', 400));
+      return next(
+        new AppError(
+          ERROR_KEY.MISSING_ID_CONCEPT,
+          'Invalid or missing conceptId',
+          400,
+        ),
+      );
     }
 
     const concept = await ConceptRestaurantModel.findOne({ _id: conceptId });
     if (!concept) {
-      return next(new AppError('Not find concept', 404));
+      return next(
+        new AppError(ERROR_KEY.EMAIL_IS_NOT_EXISTED, 'Not find concept', 404),
+      );
     }
 
     const oldCount = concept.reviews.length;

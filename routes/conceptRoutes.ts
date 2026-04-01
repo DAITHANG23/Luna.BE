@@ -1,5 +1,5 @@
-import express from "express";
-import { protect, restrictTo } from "../controllers/authController";
+import express from 'express';
+import { protect, restrictTo } from '@controllers/authController';
 import {
   createConcept,
   deleteConcept,
@@ -11,30 +11,30 @@ import {
   uploadConceptImages,
   getCheckInConcepts,
   conceptReviewPost,
-} from "../controllers/conceptController";
+} from '@controllers/conceptController';
 
 const router = express.Router();
 
 router
-  .route("/")
+  .route('/')
   .get(getAllConcepts)
-  .post(protect, restrictTo("admin"), createConcept);
+  .post(protect, restrictTo('admin'), createConcept);
 
-router.get("/favoriteConcepts", protect, getFavoriteConcepts);
-router.get("/getCheckInConcepts", protect, getCheckInConcepts);
+router.get('/favoriteConcepts', protect, getFavoriteConcepts);
+router.get('/getCheckInConcepts', protect, getCheckInConcepts);
 
-router.post("/review", protect, conceptReviewPost);
+router.post('/review', protect, conceptReviewPost);
 
 router
-  .route("/:id")
+  .route('/:id')
   .get(getConcept)
   .patch(
     protect,
-    restrictTo("admin", "conceptManager", "customer"),
+    restrictTo('admin', 'conceptManager', 'customer'),
     uploadConceptImages,
     resizeConceptImages,
-    updateConcept
+    updateConcept,
   )
-  .delete(protect, restrictTo("admin", "conceptManager"), deleteConcept);
+  .delete(protect, restrictTo('admin', 'conceptManager'), deleteConcept);
 
 export default router;

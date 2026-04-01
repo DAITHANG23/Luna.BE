@@ -5,7 +5,7 @@
   "scripts": {
     "build": "tsc",
     "postbuild": "copyfiles views/**/* dist",
-    "dev": "cross-env NODE_ENV=development nodemon server.ts",
+    "dev": "cross-env NODE_ENV=development nodemon --exec ts-node -r tsconfig-paths/register server.ts",
     "start": "NODE_ENV=production node dist/server.js",
     "debug": "ndb server.ts"
   },
@@ -40,6 +40,7 @@
     "passport-google-oauth20": "^2.0.0",
     "pug": "^3.0.3",
     "qs": "^6.14.0",
+    "resend": "^6.9.1",
     "sharp": "^0.33.5",
     "slugify": "^1.6.6",
     "socket.io": "^4.8.1",
@@ -74,10 +75,10 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^5.2.3",
     "eslint-plugin-react": "^7.37.4",
-    "html-to-text": "^9.0.5",
     "ndb": "^1.1.5",
     "nodemon": "^3.1.9",
     "prettier": "^3.5.1",
-    "ts-node": "^10.9.2"
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0"
   }
 }
