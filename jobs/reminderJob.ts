@@ -1,27 +1,27 @@
-import cron from "node-cron";
-import { subHours } from "date-fns";
-import BookingModel from "../models/bookingModel";
-import Restaurant from "../models/restaurantModel";
+import cron from 'node-cron';
+import { subHours } from 'date-fns';
+import BookingModel from '@models/bookingModel';
+import Restaurant from '@models/restaurantModel';
 import {
   emitBookingCompleted,
   emitBookingConfirmed,
   emitBookingInProgress,
   emitBookingReminder,
-} from "../socket/bookingRestaurant/BookingRestaurant";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
+} from '@socket/bookingRestaurant/BookingRestaurant';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 
 dayjs.extend(utc);
 
 export const startReminderJob = () => {
-  cron.schedule("* * * * *", async () => {
+  cron.schedule('* * * * *', async () => {
     try {
       const now = new Date();
       const reminderTime = subHours(now, 1);
 
       const bookings = await BookingModel.find({
         timeSlot: reminderTime,
-        status: "CONFIRMED",
+        status: 'CONFIRMED',
       });
 
       for (const booking of bookings) {
@@ -31,32 +31,32 @@ export const startReminderJob = () => {
         }
       }
     } catch (err) {
-      console.error("Error running reminder job:", err);
+      console.error('Error running reminder job:', err);
     }
 
     // job to auto confirm bookings
     try {
       const nowTime = dayjs().utc();
 
-      const lowerBound = nowTime.subtract(2, "minute").toDate();
-      const upperBound = nowTime.subtract(1, "minute").toDate();
+      const lowerBound = nowTime.subtract(2, 'minute').toDate();
+      const upperBound = nowTime.subtract(1, 'minute').toDate();
 
       const bookings = await BookingModel.find({
         createdAt: { $gte: lowerBound, $lte: upperBound },
-        status: "PENDING",
+        status: 'PENDING',
       });
 
       for (const booking of bookings) {
         const restaurant = await Restaurant.findById(booking.restaurant);
 
         const updateBookingHistory = {
-          status: "CONFIRMED",
+          status: 'CONFIRMED',
           updatedAt: new Date(),
-          updateBy: "Dom Nguyen",
+          updateBy: 'Dom Nguyen',
         };
 
         const formatBody = {
-          status: "CONFIRMED",
+          status: 'CONFIRMED',
           statusHistory: [
             ...(booking?.statusHistory ?? []),
             updateBookingHistory,
@@ -69,7 +69,7 @@ export const startReminderJob = () => {
           {
             new: true,
             runValidators: true,
-          }
+          },
         );
 
         if (restaurant) {
@@ -77,20 +77,20 @@ export const startReminderJob = () => {
         }
       }
     } catch (err) {
-      console.error("Error in auto confirm booking job:", err);
+      console.error('Error in auto confirm booking job:', err);
     }
 
     // job to auto in-progress bookings
     try {
       const nowTime = dayjs().utc();
 
-      const lowerBound = nowTime.subtract(2, "minute").toDate();
-      const upperBound = nowTime.subtract(1, "minute").toDate();
+      const lowerBound = nowTime.subtract(2, 'minute').toDate();
+      const upperBound = nowTime.subtract(1, 'minute').toDate();
 
       const bookings = await BookingModel.find({
         statusHistory: {
           $elemMatch: {
-            status: "CONFIRMED",
+            status: 'CONFIRMED',
             updatedAt: { $gte: lowerBound, $lte: upperBound },
           },
         },
@@ -100,13 +100,13 @@ export const startReminderJob = () => {
         const restaurant = await Restaurant.findById(booking.restaurant);
 
         const updateBookingHistory = {
-          status: "IN_PROGRESS",
+          status: 'IN_PROGRESS',
           updatedAt: new Date(),
-          updateBy: "Dom Nguyen",
+          updateBy: 'Dom Nguyen',
         };
 
         const formatBody = {
-          status: "IN_PROGRESS",
+          status: 'IN_PROGRESS',
           statusHistory: [
             ...(booking?.statusHistory ?? []),
             updateBookingHistory,
@@ -119,7 +119,7 @@ export const startReminderJob = () => {
           {
             new: true,
             runValidators: true,
-          }
+          },
         );
 
         if (restaurant) {
@@ -127,20 +127,20 @@ export const startReminderJob = () => {
         }
       }
     } catch (err) {
-      console.error("Error in auto confirm booking job:", err);
+      console.error('Error in auto confirm booking job:', err);
     }
 
     // job to auto complete bookings
     try {
       const nowTime = dayjs().utc();
 
-      const lowerBound = nowTime.subtract(2, "minute").toDate();
-      const upperBound = nowTime.subtract(1, "minute").toDate();
+      const lowerBound = nowTime.subtract(2, 'minute').toDate();
+      const upperBound = nowTime.subtract(1, 'minute').toDate();
 
       const bookings = await BookingModel.find({
         statusHistory: {
           $elemMatch: {
-            status: "IN_PROGRESS",
+            status: 'IN_PROGRESS',
             updatedAt: { $gte: lowerBound, $lte: upperBound },
           },
         },
@@ -150,13 +150,13 @@ export const startReminderJob = () => {
         const restaurant = await Restaurant.findById(booking.restaurant);
 
         const updateBookingHistory = {
-          status: "COMPLETED",
+          status: 'COMPLETED',
           updatedAt: new Date(),
-          updateBy: "Dom Nguyen",
+          updateBy: 'Dom Nguyen',
         };
 
         const formatBody = {
-          status: "COMPLETED",
+          status: 'COMPLETED',
           statusHistory: [
             ...(booking?.statusHistory ?? []),
             updateBookingHistory,
@@ -169,7 +169,7 @@ export const startReminderJob = () => {
           {
             new: true,
             runValidators: true,
-          }
+          },
         );
 
         if (restaurant) {
@@ -177,7 +177,7 @@ export const startReminderJob = () => {
         }
       }
     } catch (err) {
-      console.error("Error in auto confirm booking job:", err);
+      console.error('Error in auto confirm booking job:', err);
     }
   });
 };

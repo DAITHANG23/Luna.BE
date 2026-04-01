@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
-import NotificationModel from '../models/notificationModel';
-import catchAsync from '../utils/catchAsync';
+import NotificationModel from '@models/notificationModel';
+import catchAsync from '@utils/catchAsync';
 import { deleteOne, getAll, getOne } from './handlerFactory';
-import AppError from '../utils/appError';
-import { ERROR_KEY } from '../utils/errorKey';
+import AppError from '@utils/appError';
+import { ERROR_KEY } from '@utils/errorKey';
 
 export const checkReadNotification = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {

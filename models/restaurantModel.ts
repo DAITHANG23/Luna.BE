@@ -1,28 +1,28 @@
-import mongoose, { Query, Schema, Types } from "mongoose";
-import { IRestaurant } from "../@types";
+import mongoose, { Query, Schema, Types } from 'mongoose';
+import { IRestaurant } from '../@types';
 
 const restaurantSchema = new mongoose.Schema<IRestaurant>(
   {
-    name: { type: String, required: [true, "Please provider name."] },
-    address: { type: String, required: [true, "Please provider address."] },
+    name: { type: String, required: [true, 'Please provider name.'] },
+    address: { type: String, required: [true, 'Please provider address.'] },
     numberPhone: {
       type: String,
-      require: [true, "Please provider number phone."],
+      require: [true, 'Please provider number phone.'],
     },
     concept: {
       type: Schema.Types.ObjectId,
-      ref: "Concept",
+      ref: 'Concept',
       required: true,
     },
     bookingManager: {
       type: Schema.Types.ObjectId,
-      ref: "User",
-      required: [true, "Concept must have a manager"],
+      ref: 'User',
+      required: [true, 'Concept must have a manager'],
     },
     staffs: [
       {
         type: Schema.Types.ObjectId,
-        ref: "User",
+        ref: 'User',
       },
     ],
     active: {
@@ -44,15 +44,15 @@ const restaurantSchema = new mongoose.Schema<IRestaurant>(
     },
     profit: {
       type: Number,
-      required: [true, "Restaurant must be have profit."],
+      required: [true, 'Restaurant must be have profit.'],
     },
     totalSale: {
       type: Number,
-      required: [true, "Restaurant must be have total sale."],
+      required: [true, 'Restaurant must be have total sale.'],
     },
     totalExpense: {
       type: Number,
-      required: [true, "Restaurant must be have total xxpense."],
+      required: [true, 'Restaurant must be have total xxpense.'],
     },
     createdAt: {
       type: Date,
@@ -62,20 +62,20 @@ const restaurantSchema = new mongoose.Schema<IRestaurant>(
   {
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
-  }
+  },
 );
 
 restaurantSchema.pre(/^find/, function (this: Query<any, any>, next) {
-  this.populate({ path: "concept", select: "name imageCover" });
+  this.populate({ path: 'concept', select: 'name imageCover' });
   next();
 });
 
-restaurantSchema.virtual("reviews", {
-  ref: "Review",
-  foreignField: "restaurant",
-  localField: "_id",
+restaurantSchema.virtual('reviews', {
+  ref: 'Review',
+  foreignField: 'restaurant',
+  localField: '_id',
 });
 
-const Restaurant = mongoose.model("Restaurant", restaurantSchema);
+const Restaurant = mongoose.model('Restaurant', restaurantSchema);
 
 export default Restaurant;

@@ -1,14 +1,14 @@
 import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import catchAsync from '../utils/catchAsync';
-import UserModel from '../models/userModel';
-import AppError from '../utils/appError';
-import Email from '../utils/emails';
+import catchAsync from '@utils/catchAsync';
+import UserModel from '@models/userModel';
+import AppError from '@utils/appError';
+import Email from '@utils/emails';
 import crypto from 'crypto';
 import { authenticator } from 'otplib';
 import { User, IUserEmail } from '../@types/index';
-import redis from '../utils/redis';
-import { ERROR_KEY } from '../utils/errorKey';
+import redis from '@utils/redis';
+import { ERROR_KEY } from '@utils/errorKey';
 
 const isProd = process.env.NODE_ENV === 'production';
 

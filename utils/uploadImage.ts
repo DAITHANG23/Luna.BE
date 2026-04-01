@@ -1,5 +1,5 @@
-import cloudinary from "cloudinary";
-import { CloudinaryUploadResult } from "../@types";
+import cloudinary from 'cloudinary';
+import { CloudinaryUploadResult } from '../@types';
 
 const initialzeCloudinary = () => {
   cloudinary.v2.config({
@@ -12,7 +12,7 @@ initialzeCloudinary();
 
 const uploadSingleImage = (
   buffer: Buffer,
-  folder = "uploads"
+  folder = 'uploads',
 ): Promise<CloudinaryUploadResult> => {
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.v2.uploader.upload_stream(
@@ -20,19 +20,19 @@ const uploadSingleImage = (
         folder: folder,
         width: 150,
         height: 150,
-        crop: "fill",
-        gravity: "auto",
+        crop: 'fill',
+        gravity: 'auto',
       },
       (error, result) => {
         if (error || !result) {
-          console.error("Cloudinary upload error:", error);
-          return reject(new Error("Upload failed"));
+          console.error('Cloudinary upload error:', error);
+          return reject(new Error('Upload failed'));
         }
         resolve({
           secure_url: result.secure_url,
           public_id: result.public_id,
         });
-      }
+      },
     );
     uploadStream.end(buffer);
   });
@@ -40,17 +40,17 @@ const uploadSingleImage = (
 
 const uploadMultipleImages = async (
   filePaths: Array<string>,
-  folder = "multipleUploads"
+  folder = 'multipleUploads',
 ) => {
   try {
-    const uploadPromises = filePaths.map((filePath) =>
+    const uploadPromises = filePaths.map(filePath =>
       cloudinary.v2.uploader.upload(filePath, {
         folder: folder,
         width: 150,
         height: 150,
-        crop: "fill",
-        gravity: "auto",
-      })
+        crop: 'fill',
+        gravity: 'auto',
+      }),
     ) as Promise<CloudinaryUploadResult>[];
 
     const results = await Promise.all(uploadPromises);
@@ -60,8 +60,8 @@ const uploadMultipleImages = async (
       public_id: result.public_id,
     }));
   } catch (error) {
-    console.error("Cloudinary upload error:", error);
-    throw new Error("Upload failed");
+    console.error('Cloudinary upload error:', error);
+    throw new Error('Upload failed');
   }
 };
 

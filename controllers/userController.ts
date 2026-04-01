@@ -1,19 +1,19 @@
 import { NextFunction, Request, Response } from 'express';
 import multer, { FileFilterCallback } from 'multer';
 import sharp from 'sharp';
-import catchAsync from '../utils/catchAsync';
-import AppError from '../utils/appError';
+import catchAsync from '@utils/catchAsync';
+import AppError from '@utils/appError';
 import {
   getOne,
   getAll,
   updateOne,
   deleteOne,
-} from '../controllers/handlerFactory';
-import { uploadSingleImage } from '../utils/uploadImage';
+} from '@controllers/handlerFactory';
+import { uploadSingleImage } from '@utils/uploadImage';
 import cloudinary from 'cloudinary';
-import UserModel from '../models/userModel';
+import UserModel from '@models/userModel';
 import mongoose, { Types } from 'mongoose';
-import { ERROR_KEY } from '../utils/errorKey';
+import { ERROR_KEY } from '@utils/errorKey';
 
 // const multerStorage = multer.diskStorage({
 //   destination: (req, file, cb) => {

@@ -1,4 +1,4 @@
-import express from "express";
+import express from 'express';
 import {
   getRestaurantStats,
   getAllRestaurants,
@@ -9,30 +9,30 @@ import {
   getDistances,
   getRestaurantsWithin,
   getAllRestaurantsInConcept,
-} from "../controllers/restaurantController";
+} from '@controllers/restaurantController';
 
-import { protect, restrictTo } from "../controllers/authController";
+import { protect, restrictTo } from '@controllers/authController';
 const router = express.Router();
 
-router.route("/restaurant-stats").get(getRestaurantStats);
+router.route('/restaurant-stats').get(getRestaurantStats);
 
 router
-  .route("/tours-within/:distance/center/:latlng/unit/:unit")
+  .route('/tours-within/:distance/center/:latlng/unit/:unit')
   .get(getRestaurantsWithin);
 
-router.route("/distances/:latlng/unit/:unit").get(getDistances);
+router.route('/distances/:latlng/unit/:unit').get(getDistances);
 
 router
-  .route("/")
+  .route('/')
   .get(getAllRestaurants)
-  .post(protect, restrictTo("admin", "conceptManager"), createRestaurant);
+  .post(protect, restrictTo('admin', 'conceptManager'), createRestaurant);
 
-router.get("/restaurantsOfConcept/:id", getAllRestaurantsInConcept);
+router.get('/restaurantsOfConcept/:id', getAllRestaurantsInConcept);
 
 router
-  .route("/:id")
+  .route('/:id')
   .get(getRestaurant)
-  .patch(protect, restrictTo("admin", "conceptManager"), updateRestaurant)
-  .delete(protect, restrictTo("admin", "conceptManager"), deleteRestaurant);
+  .patch(protect, restrictTo('admin', 'conceptManager'), updateRestaurant)
+  .delete(protect, restrictTo('admin', 'conceptManager'), deleteRestaurant);
 
 export default router;

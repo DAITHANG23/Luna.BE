@@ -5,7 +5,7 @@
   "scripts": {
     "build": "tsc",
     "postbuild": "copyfiles views/**/* dist",
-    "dev": "cross-env NODE_ENV=development nodemon server.ts",
+    "dev": "cross-env NODE_ENV=development nodemon --exec ts-node -r tsconfig-paths/register server.ts",
     "start": "NODE_ENV=production node dist/server.js",
     "debug": "ndb server.ts"
   },
@@ -78,6 +78,7 @@
     "ndb": "^1.1.5",
     "nodemon": "^3.1.9",
     "prettier": "^3.5.1",
-    "ts-node": "^10.9.2"
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0"
   }
 }

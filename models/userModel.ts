@@ -1,10 +1,10 @@
-import crypto from "crypto";
-import mongoose, { Query } from "mongoose";
-import validator from "validator";
-import bcrypt from "bcryptjs";
-import dayjs from "dayjs";
-import { User } from "../@types/index";
-import { Schema } from "mongoose";
+import crypto from 'crypto';
+import mongoose, { Query } from 'mongoose';
+import validator from 'validator';
+import bcrypt from 'bcryptjs';
+import dayjs from 'dayjs';
+import { User } from '../@types/index';
+import { Schema } from 'mongoose';
 const userSchema = new mongoose.Schema<User>(
   {
     googleId: { type: String },
@@ -12,114 +12,114 @@ const userSchema = new mongoose.Schema<User>(
     lastName: { type: String, required: true },
     fullName: {
       type: String,
-      require: [true, "Please provider name."],
-      minLength: [3, "Name must be at least 3 characters."],
-      maxLength: [50, "Name must be maxium 50 characters."],
+      require: [true, 'Please provider name.'],
+      minLength: [3, 'Name must be at least 3 characters.'],
+      maxLength: [50, 'Name must be maxium 50 characters.'],
     },
     numberPhone: {
       type: String,
-      require: [true, "Please provide number phone."],
-      minLength: [10, "Number phone must be at least 10 digitals."],
-      maxLength: [15, "Number phone must maxium 15 digitals."],
+      require: [true, 'Please provide number phone.'],
+      minLength: [10, 'Number phone must be at least 10 digitals.'],
+      maxLength: [15, 'Number phone must maxium 15 digitals.'],
     },
     email: {
       type: String,
-      require: [true, "Please provide email."],
+      require: [true, 'Please provide email.'],
       unique: true,
       lowercase: true,
-      validate: [validator.isEmail, "Please provide a valid email."],
+      validate: [validator.isEmail, 'Please provide a valid email.'],
     },
     role: {
       type: String,
       enum: [
-        "admin",
-        "user",
-        "customer",
-        "accountant",
-        "restaurantManager",
-        "conceptManager",
+        'admin',
+        'user',
+        'customer',
+        'accountant',
+        'restaurantManager',
+        'conceptManager',
       ],
-      default: "customer",
+      default: 'customer',
     },
     avatarId: {
       type: String,
     },
     avatarUrl: {
       type: String,
-      default: "",
+      default: '',
     },
     gender: {
       type: String,
-      enum: ["male", "female"],
-      default: "male",
+      enum: ['male', 'female'],
+      default: 'male',
     },
     address: {
       type: String,
-      require: [true, "Please provide address."],
-      minLength: [5, "Address must be at lease 5 characters"],
-      maxLength: [100, "Address must be maxium 100 characters"],
-      default: "Thong Nhat, Go Vap",
+      require: [true, 'Please provide address.'],
+      minLength: [5, 'Address must be at lease 5 characters'],
+      maxLength: [100, 'Address must be maxium 100 characters'],
+      default: 'Thong Nhat, Go Vap',
     },
     password: {
       type: String,
-      require: [true, "Please provide password."],
+      require: [true, 'Please provide password.'],
       minlength: 8,
       select: false,
       match: [
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-        "Password must have at least 8 characters, one uppercase, one lowercase, one number, and one special character.",
+        'Password must have at least 8 characters, one uppercase, one lowercase, one number, and one special character.',
       ],
     },
     concept: {
       type: String,
-      ref: "Concept",
+      ref: 'Concept',
       validate: {
         validator: function (v) {
-          return this.role !== "customer" || !v;
+          return this.role !== 'customer' || !v;
         },
-        message: "Customer can not have concept",
+        message: 'Customer can not have concept',
       },
     },
     restaurant: {
       type: String,
-      ref: "Restaurant",
+      ref: 'Restaurant',
       validate: {
         validator: function (v) {
-          return this.role !== "customer" || !v;
+          return this.role !== 'customer' || !v;
         },
-        message: "Customer can not have restaurant",
+        message: 'Customer can not have restaurant',
       },
     },
     dateOfBirth: {
       type: String,
     },
     favorites: {
-      type: [{ type: Schema.Types.ObjectId, ref: "Concept" }],
+      type: [{ type: Schema.Types.ObjectId, ref: 'Concept' }],
       validate: {
         validator: function (v) {
-          return this.role === "customer" || v.length === 0;
+          return this.role === 'customer' || v.length === 0;
         },
-        message: "Only customers can have favorites",
+        message: 'Only customers can have favorites',
       },
     },
     checkInConcepts: {
-      type: [{ type: Schema.Types.ObjectId, ref: "Concept" }],
+      type: [{ type: Schema.Types.ObjectId, ref: 'Concept' }],
       validate: {
         validator: function (v) {
-          return this.role === "customer" || v.length === 0;
+          return this.role === 'customer' || v.length === 0;
         },
-        message: "Only customers can have check in concepts",
+        message: 'Only customers can have check in concepts',
       },
     },
     passwordConfirm: {
       type: String,
-      require: [true, "Please provide password confirm"],
+      require: [true, 'Please provide password confirm'],
       validate: {
         // This only works on CREATE and SAVE!!!
         validator: function (el) {
           return el === this.password;
         },
-        message: "Passwords are not the same!",
+        message: 'Passwords are not the same!',
       },
     },
     otpCode: {
@@ -145,13 +145,13 @@ const userSchema = new mongoose.Schema<User>(
       default: Date.now,
     },
   },
-  { versionKey: false }
+  { versionKey: false },
 );
 
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
+userSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) return next();
 
-  if (typeof this.password === "string") {
+  if (typeof this.password === 'string') {
     this.password = await bcrypt.hash(this.password, 12);
   }
 
@@ -165,9 +165,9 @@ userSchema.pre(/^find/, function (this: Query<any, Document>, next) {
   next();
 });
 
-userSchema.set("toObject", {
+userSchema.set('toObject', {
   transform: function (doc, ret) {
-    if (ret.role !== "customer") {
+    if (ret.role !== 'customer') {
       delete ret.favorites;
       delete ret.checkInConcepts;
     }
@@ -175,8 +175,8 @@ userSchema.set("toObject", {
   },
 });
 
-userSchema.pre("save", function (next) {
-  if (!this.isModified("password") || !this.isNew) return next();
+userSchema.pre('save', function (next) {
+  if (!this.isModified('password') || !this.isNew) return next();
 
   if (this.passwordChangedAt instanceof Date) {
     this.passwordChangedAt = new Date(Date.now() - 1000);
@@ -185,19 +185,19 @@ userSchema.pre("save", function (next) {
   next();
 });
 
-userSchema.pre("save", function (next) {
+userSchema.pre('save', function (next) {
   if (!this.dateOfBirth) {
     return next();
   }
-  const minAgeDate = dayjs().subtract(13, "year").startOf("day");
+  const minAgeDate = dayjs().subtract(13, 'year').startOf('day');
   const dob = dayjs(this.dateOfBirth);
 
   if (!dob.isValid()) {
-    return next(new Error("Invalid date of birth!"));
+    return next(new Error('Invalid date of birth!'));
   }
 
   if (dob.isAfter(minAgeDate) || dob.isSame(minAgeDate)) {
-    return next(new Error("User must be at least 13 years old!"));
+    return next(new Error('User must be at least 13 years old!'));
   }
 
   next();
@@ -205,7 +205,7 @@ userSchema.pre("save", function (next) {
 
 userSchema.methods.correctPassword = async (
   candidatePassword: string,
-  userPassword: string
+  userPassword: string,
 ) => {
   return await bcrypt.compare(candidatePassword, userPassword);
 };
@@ -214,7 +214,7 @@ userSchema.methods.changedPasswordAfter = function (JWTTimestamp: number) {
   if (this.passwordChangedAt) {
     const changedTimestamp = parseInt(
       String(this.passwordChangedAt.getTime() / 10000),
-      10
+      10,
     );
     return JWTTimestamp < changedTimestamp;
   }
@@ -223,17 +223,17 @@ userSchema.methods.changedPasswordAfter = function (JWTTimestamp: number) {
 };
 
 userSchema.methods.createPasswordResetToken = function () {
-  const resetToken = crypto.randomBytes(32).toString("hex");
+  const resetToken = crypto.randomBytes(32).toString('hex');
 
   this.passwordResetToken = crypto
-    .createHash("sha256")
+    .createHash('sha256')
     .update(resetToken)
-    .digest("hex");
+    .digest('hex');
 
   this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
   return resetToken;
 };
 
-const UserModel = mongoose.model("User", userSchema);
+const UserModel = mongoose.model('User', userSchema);
 
 export default UserModel;
