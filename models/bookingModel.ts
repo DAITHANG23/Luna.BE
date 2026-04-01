@@ -1,24 +1,24 @@
-import mongoose, { Schema } from "mongoose";
-import { IBooking } from "../@types";
+import mongoose, { Schema } from 'mongoose';
+import { IBooking } from '../@types';
 
 const statusHistorySchema = new mongoose.Schema(
   {
-    status: { type: String, default: "PENDING" },
+    status: { type: String, default: 'PENDING' },
     updatedAt: { type: Date, default: Date.now },
-    updateBy: { type: String, default: "" },
+    updateBy: { type: String, default: '' },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const bookingSchema = new mongoose.Schema<IBooking>({
   customer: {
     type: Schema.Types.ObjectId,
-    ref: "UserModel",
+    ref: 'UserModel',
     required: true,
   },
   restaurant: {
     type: Schema.Types.ObjectId,
-    ref: "Restaurant",
+    ref: 'Restaurant',
     required: true,
   },
   timeOfBooking: {
@@ -51,15 +51,15 @@ const bookingSchema = new mongoose.Schema<IBooking>({
   status: {
     type: String,
     num: [
-      "PENDING",
-      "CONFIRMED",
-      "IN_PROGRESS",
-      "COMPLETED",
-      "CANCELLED_BY_USER",
-      "CANCELLED_BY_ADMIN",
-      "NO_SHOW",
+      'PENDING',
+      'CONFIRMED',
+      'IN_PROGRESS',
+      'COMPLETED',
+      'CANCELLED_BY_USER',
+      'CANCELLED_BY_ADMIN',
+      'NO_SHOW',
     ],
-    default: "PENDING",
+    default: 'PENDING',
   },
   statusHistory: [statusHistorySchema],
   createdAt: {
@@ -67,17 +67,17 @@ const bookingSchema = new mongoose.Schema<IBooking>({
     default: Date.now,
   },
 });
-bookingSchema.pre("save", function (next) {
-  const updater = this._updateBy || this.fullName || "";
+bookingSchema.pre('save', function (next) {
+  const updater = this._updateBy || this.fullName || '';
   if (this.isNew) {
     this.statusHistory = [
       {
-        status: "PENDING",
+        status: 'PENDING',
         updateBy: updater,
         updatedAt: new Date(),
       },
     ];
-  } else if (this.isModified("status") && this.statusHistory) {
+  } else if (this.isModified('status') && this.statusHistory) {
     this.statusHistory.push({
       status: this.status,
       updateBy: updater,
@@ -86,5 +86,5 @@ bookingSchema.pre("save", function (next) {
   }
   next();
 });
-const BookingModel = mongoose.model("Booking", bookingSchema);
+const BookingModel = mongoose.model('Booking', bookingSchema);
 export default BookingModel;

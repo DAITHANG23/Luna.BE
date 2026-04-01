@@ -1,25 +1,31 @@
 import { NextFunction, Request, Response } from 'express';
 import { Model, Document, PopulateOptions } from 'mongoose';
-import catchAsync from '../utils/catchAsync';
-import AppError from '../utils/appError';
-import APIFeatures from '../utils/apiFeatures';
-import ConceptRestaurantModel from '../models/conceptModel';
-import redis from '../utils/redis';
-import BookingModel from '../models/bookingModel';
+import catchAsync from '@utils/catchAsync';
+import AppError from '@utils/appError';
+import APIFeatures from '@utils/apiFeatures';
+import ConceptRestaurantModel from '@models/conceptModel';
+import redis from '@utils/redis';
+import BookingModel from '@models/bookingModel';
 import {
   emitBookingCanceled,
   emitBookingCompleted,
   emitBookingConfirmed,
   emitBookingCreated,
-} from '../socket/bookingRestaurant/BookingRestaurant';
-import NotificationModel from '../models/notificationModel';
+} from '@socket/bookingRestaurant/BookingRestaurant';
+import { ERROR_KEY } from '@utils/errorKey';
 
 export const deleteOne = <T extends Document>(Model: Model<T>) =>
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const doc = await Model.findByIdAndDelete(req.params.id);
 
     if (!doc) {
-      return next(new AppError('No document found with that ID', 404));
+      return next(
+        new AppError(
+          ERROR_KEY.DOCUMENT_NOT_FOUND,
+          'No document found with that ID',
+          404,
+        ),
+      );
     }
 
     res.status(204).json({
@@ -63,7 +69,13 @@ export const updateOne = <T extends Document>(Model: Model<T>) =>
         },
       );
       if (!docBooking) {
-        return next(new AppError('No document found with that ID', 404));
+        return next(
+          new AppError(
+            ERROR_KEY.DOCUMENT_NOT_FOUND,
+            'No document found with that ID',
+            404,
+          ),
+        );
       }
 
       if (req.body.status === 'CANCELLED_BY_ADMIN') {
@@ -80,7 +92,13 @@ export const updateOne = <T extends Document>(Model: Model<T>) =>
     }
 
     if (!doc) {
-      return next(new AppError('No document found with that ID', 404));
+      return next(
+        new AppError(
+          ERROR_KEY.DOCUMENT_NOT_FOUND,
+          'No document found with that ID',
+          404,
+        ),
+      );
     }
 
     res.status(200).json({
@@ -114,7 +132,13 @@ export const getOne = <T extends Document>(
     const { id } = req.params;
 
     if (!id || typeof id !== 'string' || id.trim().length === 0) {
-      return next(new AppError('Please provide a valid id', 400));
+      return next(
+        new AppError(
+          ERROR_KEY.INVALID_INPUT_DATA,
+          'Please provide a valid id',
+          400,
+        ),
+      );
     }
     let query = Model.findById(req.params.id);
 
@@ -122,7 +146,13 @@ export const getOne = <T extends Document>(
     const doc = await query;
 
     if (!doc) {
-      return next(new AppError('No document found with that ID', 404));
+      return next(
+        new AppError(
+          ERROR_KEY.DOCUMENT_NOT_FOUND,
+          'No document found with that ID',
+          404,
+        ),
+      );
     }
 
     res.status(200).json({
