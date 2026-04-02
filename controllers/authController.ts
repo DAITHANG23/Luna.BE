@@ -238,7 +238,7 @@ export const login = catchAsync(async (req, res, next) => {
 
   if (!user) {
     return next(
-      new AppError(ERROR_KEY.EMAIL_IS_EXISTED, 'Email is not exist', 401),
+      new AppError(ERROR_KEY.EMAIL_IS_NOT_EXISTED, 'Email is not exist', 401),
     );
   }
 
@@ -247,11 +247,7 @@ export const login = catchAsync(async (req, res, next) => {
     !(await user.correctPassword(password, user.password as string))
   ) {
     return next(
-      new AppError(
-        ERROR_KEY.INCORRECT_EMAIL_OR_PASSWORD,
-        'Incorrect email or password',
-        401,
-      ),
+      new AppError(ERROR_KEY.INCORRECT_PASSWORD, 'Incorrect password', 401),
     );
   }
   // 3) If everything ok, send token to client
