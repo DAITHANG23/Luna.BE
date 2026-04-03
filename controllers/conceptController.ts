@@ -156,7 +156,7 @@ export const conceptReviewPost = catchAsync(
     const concept = await ConceptRestaurantModel.findOne({ _id: conceptId });
     if (!concept) {
       return next(
-        new AppError(ERROR_KEY.EMAIL_IS_NOT_EXISTED, 'Not find concept', 404),
+        new AppError(ERROR_KEY.CONCEPT_IS_NOT_EXISTED, 'Not find concept', 404),
       );
     }
 
