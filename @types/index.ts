@@ -1,6 +1,6 @@
-import { Document, Types } from "mongoose";
+import { Document, Types } from 'mongoose';
 
-type Gender = "male" | "female";
+type Gender = 'male' | 'female';
 
 export interface User extends Document {
   googleId: string;
@@ -32,7 +32,7 @@ export interface User extends Document {
   otpExpires?: Date;
   correctPassword(
     candidatePassword: string,
-    userPassword: string
+    userPassword: string,
   ): Promise<boolean>;
   changedPasswordAfter(JWTTimestamp: number): boolean;
   createPasswordResetToken(): string;
@@ -124,13 +124,13 @@ export interface IDishItem extends Document {
 }
 
 export type IStatusBooking =
-  | "PENDING"
-  | "CONFIRMED"
-  | "IN_PROGRESS"
-  | "COMPLETED"
-  | "CANCELLED_BY_USER"
-  | "CANCELLED_BY_ADMIN"
-  | "NO_SHOW";
+  | 'PENDING'
+  | 'CONFIRMED'
+  | 'IN_PROGRESS'
+  | 'COMPLETED'
+  | 'CANCELLED_BY_USER'
+  | 'CANCELLED_BY_ADMIN'
+  | 'NO_SHOW';
 
 export interface StatusHistory {
   status: IStatusBooking;
@@ -154,11 +154,11 @@ export interface IBooking extends Document {
 }
 
 export type ITypeNotification =
-  | "bookingCreated"
-  | "bookingConfirmed"
-  | "bookingCanceled"
-  | "bookingInProgress"
-  | "bookingCompleted";
+  | 'bookingCreated'
+  | 'bookingConfirmed'
+  | 'bookingCanceled'
+  | 'bookingInProgress'
+  | 'bookingCompleted';
 export interface INotification extends Document {
   title: string;
   message: string;

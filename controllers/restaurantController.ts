@@ -107,7 +107,9 @@ export const getAllRestaurantsInConcept = catchAsync(
       );
     }
 
-    let filterObj: any = { concept: new mongoose.Types.ObjectId(id as string) };
+    const filterObj: any = {
+      concept: new mongoose.Types.ObjectId(id as string),
+    };
     if (searchText) {
       filterObj.$or = [
         { name: { $regex: searchText, $options: 'i' } },
