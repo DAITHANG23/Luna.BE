@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 import mongoose from 'mongoose';
 import dotenv = require('dotenv');
 import { Request, Response } from 'express';

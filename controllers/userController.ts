@@ -12,7 +12,7 @@ import {
 import { uploadSingleImage } from '@utils/uploadImage';
 import cloudinary from 'cloudinary';
 import UserModel from '@models/userModel';
-import mongoose, { Types } from 'mongoose';
+import mongoose from 'mongoose';
 import { ERROR_KEY } from '@utils/errorKey';
 
 // const multerStorage = multer.diskStorage({

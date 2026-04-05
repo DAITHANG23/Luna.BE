@@ -19,6 +19,7 @@ import AppError from './utils/appError';
 import redis from './utils/redis';
 import qs from 'qs';
 import { RedisStore } from 'connect-redis';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const xss = require('xss-clean');
 import hpp from 'hpp';
 import { isLoggedIn } from './controllers/authController';

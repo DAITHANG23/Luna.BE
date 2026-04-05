@@ -7,7 +7,9 @@
     "postbuild": "copyfiles views/**/* dist",
     "dev": "cross-env NODE_ENV=development nodemon --exec ts-node -r tsconfig-paths/register server.ts",
     "start": "NODE_ENV=production node dist/server.js",
-    "debug": "ndb server.ts"
+    "debug": "ndb server.ts",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "author": "Dom Nguyen",
   "license": "ISC",
@@ -49,6 +51,7 @@
     "xss-clean": "^0.1.4"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/compression": "^1.7.5",
     "@types/cookie-parser": "^1.4.8",
     "@types/cors": "^2.8.17",
@@ -67,18 +70,17 @@
     "@types/validator": "^13.12.2",
     "copyfiles": "^2.4.1",
     "cross-env": "^7.0.3",
-    "eslint": "^8.57.1",
-    "eslint-config-airbnb": "^19.0.4",
-    "eslint-config-prettier": "^10.0.1",
+    "eslint": "^9.39.4",
+    "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.31.0",
-    "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-prettier": "^5.2.3",
-    "eslint-plugin-react": "^7.37.4",
+    "eslint-plugin-prettier": "^5.5.5",
+    "globals": "^17.4.0",
     "ndb": "^1.1.5",
     "nodemon": "^3.1.9",
     "prettier": "^3.5.1",
     "ts-node": "^10.9.2",
-    "tsconfig-paths": "^4.2.0"
+    "tsconfig-paths": "^4.2.0",
+    "typescript-eslint": "^8.58.0"
   }
 }
