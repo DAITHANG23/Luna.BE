@@ -4,13 +4,20 @@ class AppError extends Error {
   public status: string;
   public isOperational: boolean;
   public errorCode: string;
-  constructor(errorCode: string, message: string, statusCode: number) {
+  public fillWrongCurrentPasswordNumber: number;
+  constructor(
+    errorCode: string,
+    message: string,
+    statusCode: number,
+    fillWrongCurrentPasswordNumber?: number,
+  ) {
     super(message);
 
     this.errorCode = errorCode;
     this.messageError = message || 'Something went very wrong!';
     this.statusCode = statusCode || 500;
     this.status = `${statusCode}`.startsWith('4') ? 'fail' : 'error';
+    this.fillWrongCurrentPasswordNumber = fillWrongCurrentPasswordNumber || 0;
     this.isOperational = true;
 
     Error.captureStackTrace(this, this.constructor);

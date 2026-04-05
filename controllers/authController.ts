@@ -262,8 +262,9 @@ export const login = catchAsync(async (req, res, next) => {
     return next(
       new AppError(
         ERROR_KEY.WRONG_CURRENT_PASSWORD_5_TIMES,
-        'Your current password is wrong. You have 5 attempts left. If you enter the wrong password more than 5 times, your account will be locked for 15 minutes.',
+        'Your current password is wrong. You have 5 attempts left. If you enter the wrong password more than 5 times, your account will be locked for for 12 hours.',
         401,
+        fillWrongCurrentPasswordNumber,
       ),
     );
   }
@@ -692,20 +693,16 @@ export const updatePassword = catchAsync(async (req, res, next) => {
       `fillWrongCurrentPasswordNumber:${idUser}`,
       fillWrongCurrentPasswordNumber + 1,
       'EX',
-      60 * 15,
-    );
-
-    console.log(
-      'fillWrongCurrentPasswordNumber:',
-      fillWrongCurrentPasswordNumber,
+      60 * 60 * 12,
     );
 
     if (fillWrongCurrentPasswordNumber >= 5) {
       return next(
         new AppError(
           ERROR_KEY.WRONG_CURRENT_PASSWORD_5_TIMES,
-          'Your current password is wrong. You have 5 attempts left. If you enter the wrong password more than 5 times, your account will be locked for 15 minutes.',
+          'Your current password is wrong. You have 5 attempts left. If you enter the wrong password more than 5 times, your account will be locked for 12 hours.',
           401,
+          fillWrongCurrentPasswordNumber,
         ),
       );
     }
@@ -714,6 +711,7 @@ export const updatePassword = catchAsync(async (req, res, next) => {
         ERROR_KEY.WRONG_CURRENT_PASSWORD,
         'Your current password is wrong.',
         401,
+        fillWrongCurrentPasswordNumber + 1,
       ),
     );
   }
