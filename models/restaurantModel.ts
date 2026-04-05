@@ -1,4 +1,4 @@
-import mongoose, { Query, Schema, Types } from 'mongoose';
+import mongoose, { Query, Schema } from 'mongoose';
 import { IRestaurant } from '../@types';
 
 const restaurantSchema = new mongoose.Schema<IRestaurant>(

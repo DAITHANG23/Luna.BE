@@ -1,4 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 import http = require('http');
 
 const server = http.createServer((req, res) => {

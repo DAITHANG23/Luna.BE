@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextFunction, Request, Response } from 'express';
 import { Model, Document, PopulateOptions } from 'mongoose';
 import catchAsync from '@utils/catchAsync';
