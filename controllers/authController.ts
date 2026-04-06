@@ -6,7 +6,7 @@ import AppError from '@utils/appError';
 import Email from '@utils/emails';
 import crypto from 'crypto';
 import { authenticator } from 'otplib';
-import { User, IUserEmail } from '../@types/index';
+import { User } from '../@types/index';
 import redis from '@utils/redis';
 import { ERROR_KEY } from '@utils/errorKey';
 
@@ -233,6 +233,7 @@ export const login = catchAsync(async (req, res, next) => {
       ),
     );
   }
+
   // 2) Check if user exists && password is correct
   const user = await UserModel.findOne({ email }).select('+password');
 
@@ -250,7 +251,23 @@ export const login = catchAsync(async (req, res, next) => {
       new AppError(ERROR_KEY.INCORRECT_PASSWORD, 'Incorrect password', 401),
     );
   }
-  // 3) If everything ok, send token to client
+
+  // 3) Check if user has entered the wrong password more than 5 times
+  const fillWrongCurrentPasswordNumber = Number(
+    await redis.get(`fillWrongCurrentPasswordNumber:${user.id}`),
+  );
+
+  if (fillWrongCurrentPasswordNumber >= 5) {
+    return next(
+      new AppError(
+        ERROR_KEY.WRONG_CURRENT_PASSWORD_5_TIMES,
+        'Your current password is wrong. You have 5 attempts left. If you enter the wrong password more than 5 times, your account will be locked for for 12 hours.',
+        401,
+        fillWrongCurrentPasswordNumber,
+      ),
+    );
+  }
+  // 4) If everything ok, send token to client
   createSendToken(user, 200, req, res);
 });
 
@@ -310,10 +327,34 @@ export const protect = catchAsync(async (req, res, next) => {
   const ttlSeconds = 60 * 60 * 24 * 7;
   await redis.expire(key, ttlSeconds);
 
-  const decoded = await verifyToken(
-    sessionData,
-    process.env.JWT_SECRET as string,
-  );
+  let decoded;
+  try {
+    decoded = await verifyToken(sessionData, process.env.JWT_SECRET as string);
+  } catch (error: any) {
+    if (error.name === 'TokenExpiredError') {
+      const expiredData = jwt.decode(sessionData) as { userId: string } | null;
+      if (!expiredData || !expiredData.userId) {
+        return next(
+          new AppError(
+            ERROR_KEY.TOKEN_IS_INVALID,
+            'Invalid token payload',
+            401,
+          ),
+        );
+      }
+
+      const newAccessToken = signAccessToken(expiredData.userId);
+      await redis.set(key, newAccessToken, 'EX', ttlSeconds);
+      decoded = await verifyToken(
+        newAccessToken,
+        process.env.JWT_SECRET as string,
+      );
+    } else {
+      return next(
+        new AppError(ERROR_KEY.TOKEN_IS_INVALID, 'Invalid token', 401),
+      );
+    }
+  }
 
   const currentUser = await UserModel.findById(decoded.userId);
 
@@ -366,10 +407,32 @@ export const isLoggedIn = async (
         return next();
       }
       // 1) verify token
-      const decoded = await verifyToken(
-        sessionData,
-        process.env.JWT_SECRET as string,
-      );
+      let decoded;
+      try {
+        decoded = await verifyToken(
+          sessionData,
+          process.env.JWT_SECRET as string,
+        );
+      } catch (error: any) {
+        if (error.name === 'TokenExpiredError') {
+          const expiredData = jwt.decode(sessionData) as {
+            userId: string;
+          } | null;
+          if (expiredData && expiredData.userId) {
+            const newAccessToken = signAccessToken(expiredData.userId);
+            const ttlSeconds = 60 * 60 * 24 * 7;
+            await redis.set(key, newAccessToken, 'EX', ttlSeconds);
+            decoded = await verifyToken(
+              newAccessToken,
+              process.env.JWT_SECRET as string,
+            );
+          } else {
+            throw error;
+          }
+        } else {
+          throw error;
+        }
+      }
 
       // 2) Check if user still exists
       const currentUser = await UserModel.findById(decoded.userId);
@@ -386,7 +449,7 @@ export const isLoggedIn = async (
       const newAccessToken = signAccessToken(currentUser._id as string);
       const ttlSeconds = 60 * 60 * 24 * 7;
 
-      await redis.set(`session:${sessionId}`, newAccessToken, 'EX', ttlSeconds);
+      await redis.set(key, newAccessToken, 'EX', ttlSeconds);
 
       // THERE IS A LOGGED IN USER
       res.locals.user = currentUser;
@@ -622,11 +685,32 @@ export const updatePassword = catchAsync(async (req, res, next) => {
       user.password as string,
     ))
   ) {
+    const fillWrongCurrentPasswordNumber =
+      Number(await redis.get(`fillWrongCurrentPasswordNumber:${idUser}`)) || 0;
+
+    await redis.set(
+      `fillWrongCurrentPasswordNumber:${idUser}`,
+      fillWrongCurrentPasswordNumber + 1,
+      'EX',
+      60 * 60 * 12,
+    );
+
+    if (fillWrongCurrentPasswordNumber >= 5) {
+      return next(
+        new AppError(
+          ERROR_KEY.WRONG_CURRENT_PASSWORD_5_TIMES,
+          'Your current password is wrong. You have 5 attempts left. If you enter the wrong password more than 5 times, your account will be locked for 12 hours.',
+          401,
+          fillWrongCurrentPasswordNumber,
+        ),
+      );
+    }
     return next(
       new AppError(
         ERROR_KEY.WRONG_CURRENT_PASSWORD,
         'Your current password is wrong.',
         401,
+        fillWrongCurrentPasswordNumber + 1,
       ),
     );
   }

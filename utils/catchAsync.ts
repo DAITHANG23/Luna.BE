@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { User as AppUser } from '../@types/index';
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface User extends AppUser {}
     interface Request {

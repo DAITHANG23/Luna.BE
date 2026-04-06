@@ -1,8 +1,9 @@
-import nodemailer from 'nodemailer';
-import SMTPTransport = require('nodemailer/lib/smtp-transport');
 import pug from 'pug';
 import { IUserEmail } from '../@types';
 import path = require('path');
+import { Resend } from 'resend';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // import { fileURLToPath } from 'url';
 // import path from 'path';
@@ -22,19 +23,6 @@ const Email = class Email {
     this.url = url || '';
     this.otp = otp || '';
     this.from = `Domique Fusion <${process.env.EMAIL_FROM}>`;
-  }
-
-  newTransport() {
-    return nodemailer.createTransport({
-      host: process.env.EMAIL_HOST,
-      port: process.env.EMAIL_PORT,
-      auth: {
-        user: process.env.EMAIL_USERNAME,
-        pass: process.env.EMAIL_PASSWORD,
-      },
-      logger: true,
-      debug: true,
-    } as SMTPTransport.Options);
   }
 
   // Send the actual email
@@ -66,7 +54,7 @@ const Email = class Email {
 
     // 3) Create a transport and send email
     try {
-      await this.newTransport().sendMail(mailOptions);
+      await resend.emails.send(mailOptions);
       console.log('✅ Email sent');
     } catch (err) {
       console.error('❌ Email send failed:', err);
