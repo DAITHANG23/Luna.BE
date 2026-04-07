@@ -1,0 +1,18 @@
+FROM node:20-alpine
+
+WORKDIR /usr/src/app
+
+# Chỉ copy package.json trước để tận dụng cache
+COPY package*.json ./
+
+# Ở môi trường dev, chúng ta cần cài tất cả bao gồm devDependencies (như nodemon, ts-node, typescript...)
+RUN npm install
+
+# Ở môi trường dev, Docker Compose thường mount volume của source code trực tiếp vào container,
+# nên bước COPY . . dưới đây thực chất chỉ có tác dụng đề phòng nếu chạy container độc lập.
+COPY . .
+
+EXPOSE 8001
+
+# Lệnh khởi chạy server development (dựa theo scripts.dev trong package.json)
+CMD ["npm", "run", "dev"]
