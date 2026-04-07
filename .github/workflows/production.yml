@@ -38,7 +38,7 @@ jobs:
           username: ${{secrets.USERNAME}}
           password: ${{secrets.PASSWORD}}
           script: |
-            cd root/services/Luna.BE
+            cd /root/services/Luna.BE
             git pull origin main
             npm install
             npm run build
