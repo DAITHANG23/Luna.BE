@@ -16,8 +16,8 @@ services:
       - PORT=8001
 
     networks:
-      - restaurants_booking_admin_networ
+      - restaurants_booking_network
 
 networks:
-  restaurants_booking_admin_network:
+  restaurants_booking_network:
     driver: bridge
