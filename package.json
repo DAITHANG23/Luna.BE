@@ -9,7 +9,11 @@
     "start": "NODE_ENV=production node dist/server.js",
     "debug": "ndb server.ts",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "docker:dev": "docker compose -f docker-compose.dev.yaml up --build",
+    "docker:dev:down": "docker compose -f docker-compose.dev.yaml down",
+    "docker:prod": "docker compose -f docker-compose.yml up -d --build",
+    "docker:prod:down": "docker compose -f docker-compose.yml down"
   },
   "author": "Dom Nguyen",
   "license": "ISC",

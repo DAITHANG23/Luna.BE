@@ -1,0 +1,23 @@
+services:
+  backend:
+    container_name: restaurants_booking_api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - '8001:8001'
+
+    env_file:
+      - .env
+
+    environment:
+      - NODE_ENV=production
+      - PORT=8001
+
+    networks:
+      - restaurants_booking_admin_networ
+
+networks:
+  restaurants_booking_admin_network:
+    driver: bridge
