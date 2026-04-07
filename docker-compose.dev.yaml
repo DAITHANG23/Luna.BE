@@ -1,0 +1,22 @@
+services:
+  backend:
+    container_name: restaurants_booking_api
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    restart: unless-stopped
+    ports:
+      - '8002:8001'
+      - '5555:5555'
+
+    volumes:
+      - ./:/usr/src/app
+      - /usr/src/app/node_modules
+    env_file:
+      - .env
+    networks:
+      - restaurants_booking_network
+
+networks:
+  restaurants_booking_network:
+    driver: bridge
