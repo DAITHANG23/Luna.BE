@@ -68,5 +68,5 @@ jobs:
             git reset --hard origin/main
             git pull origin main
 
-            docker compose down
+            docker compose down --volumes --remove-orphans
             docker compose -f docker-compose.yml up -d --build
