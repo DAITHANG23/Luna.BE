@@ -1,6 +1,6 @@
 # 🌙 Luna.BE — Restaurant Booking Backend
 
-A robust, production-ready REST API backend for a restaurant booking platform. Built with **Node.js**, **Express**, **TypeScript**, and **MongoDB**, featuring real-time notifications, authentication, image uploads, and more.
+A robust, production-ready REST API backend for a restaurant booking platform. Built with **Node.js**, **Express**, **TypeScript**, and **MongoDB**, featuring real-time notifications, authentication, image uploads, booking and more.
 
 ---
 
