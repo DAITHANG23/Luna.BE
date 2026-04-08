@@ -44,9 +44,13 @@ jobs:
             # Tạo file .env trên VPS
             cat <<EOF > .env
             FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+            FRONTEND_URL_PROD=${{ secrets.FRONTEND_URL_PROD }}
             BACKEND_URL=${{ secrets.BACKEND_URL }}
             MONGO_URI=${{ secrets.MONGO_URI }}
             MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD }}
+            CLOUDINARY_NAME=${{ secrets.CLOUDINARY_NAME }}
+            CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}
+            CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
             OTP_KEY_SECRET=${{ secrets.OTP_KEY_SECRET }}
             REDIS_HOST=${{ secrets.REDIS_HOST }}
