@@ -6,7 +6,7 @@
     "build": "tsc",
     "postbuild": "copyfiles views/**/* dist",
     "dev": "cross-env NODE_ENV=development nodemon --exec ts-node -r tsconfig-paths/register server.ts",
-    "start": "NODE_ENV=production node dist/server.js",
+    "start": "NODE_ENV=production node -r tsconfig-paths/register dist/server.js",
     "debug": "ndb server.ts",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
