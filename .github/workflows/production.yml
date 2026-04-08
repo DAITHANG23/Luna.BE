@@ -36,28 +36,33 @@ jobs:
         with:
           host: ${{secrets.HOST}}
           username: ${{secrets.USERNAME}}
-          password: ${{secrets.PASSWORD}}
+          password: ${{ secrets.PASSWORD }}
+          port: 22
           script: |
             cd /root/services/Luna.BE
-            git pull origin main
-            npm install
-            npm run build
-            docker compose -f docker-compose.yml up -d --build
 
-      - name: Create .env file from GitHub Actions env vars
-        run: |
-          echo "FRONTEND_URL=${{ secrets.FRONTEND_URL }}" >> .env
-          echo "BACKEND_URL=${{ secrets.BACKEND_URL }}" >> .env
-          echo "MONGO_URI=${{ secrets.MONGO_URI }}" >> .env
-          echo "MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD }}" >> .env
-          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
-          echo "OTP_KEY_SECRET=${{ secrets.OTP_KEY_SECRET }}" >> .env
-          echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .env
-          echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .env
-          echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> .env
-          echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
-          echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
-          echo "GOOGLE_CALLBACK_URL=${{ secrets.GOOGLE_CALLBACK_URL }}" >> .env
-          echo "SESSION_SECRET=${{ secrets.SESSION_SECRET }}" >> .env
-          echo "RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}" >> .env
-          cat .env
+            # Tạo file .env trên VPS
+            cat <<EOF > .env
+            FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+            BACKEND_URL=${{ secrets.BACKEND_URL }}
+            MONGO_URI=${{ secrets.MONGO_URI }}
+            MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            OTP_KEY_SECRET=${{ secrets.OTP_KEY_SECRET }}
+            REDIS_HOST=${{ secrets.REDIS_HOST }}
+            REDIS_PORT=${{ secrets.REDIS_PORT }}
+            REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+            GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+            GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+            GOOGLE_CALLBACK_URL=${{ secrets.GOOGLE_CALLBACK_URL }}
+            SESSION_SECRET=${{ secrets.SESSION_SECRET }}
+            RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
+            EOF
+
+            # Deploy
+            git fetch origin
+            git reset --hard origin/main
+            git pull origin main
+
+            docker compose down
+            docker compose -f docker-compose.yml up -d --build
