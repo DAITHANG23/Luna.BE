@@ -299,17 +299,18 @@ export const logout = catchAsync(
 
 export const protect = catchAsync(async (req, res, next) => {
   let sessionId = '';
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
-  ) {
-    const token = req.headers.authorization.split(' ')[1];
-    // Guard against literal string 'undefined'/'null' sent by frontend
-    if (token && token !== 'undefined' && token !== 'null') {
-      sessionId = token;
-    }
-  } else {
+  if (isProd) {
+    // Production: sessionId is stored in httpOnly cookie
     sessionId = req.cookies.sessionId || '';
+  } else {
+    // Development: sessionId is sent via Authorization header
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer')) {
+      const token = authHeader.split(' ')[1];
+      if (token && token !== 'undefined' && token !== 'null') {
+        sessionId = token;
+      }
+    }
   }
 
   if (!sessionId) {
@@ -394,17 +395,18 @@ export const isLoggedIn = async (
   next: NextFunction,
 ) => {
   let sessionId = '';
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
-  ) {
-    const token = req.headers.authorization.split(' ')[1];
-    // Guard against literal string 'undefined'/'null' sent by frontend
-    if (token && token !== 'undefined' && token !== 'null') {
-      sessionId = token;
-    }
-  } else {
+  if (isProd) {
+    // Production: sessionId is stored in httpOnly cookie
     sessionId = req.cookies.sessionId || '';
+  } else {
+    // Development: sessionId is sent via Authorization header
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer')) {
+      const token = authHeader.split(' ')[1];
+      if (token && token !== 'undefined' && token !== 'null') {
+        sessionId = token;
+      }
+    }
   }
 
   if (sessionId) {
