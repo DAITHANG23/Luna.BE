@@ -25,6 +25,7 @@ passport.use(
             email: profile.emails?.[0]?.value || '',
             avatarUrl: profile.photos?.[0]?.value || '',
           });
+          await user.save({ validateBeforeSave: false });
         }
 
         const newAccessToken = jwt.sign(
