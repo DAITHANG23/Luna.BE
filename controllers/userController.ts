@@ -76,6 +76,17 @@ const filterObj = <T extends Record<string, any>>(
 };
 
 export const getMe = (req: Request, res: Response, next: NextFunction) => {
+  const sessionId = req.cookies.sessionId;
+
+  if (!sessionId) {
+    return next(
+      new AppError(
+        ERROR_KEY.ACCOUNT_NOT_LOGGED_IN,
+        'You are not logged in! Please log in to get access.',
+        401,
+      ),
+    );
+  }
   const userId = req.user?.id || '';
 
   req.params.id = userId;
