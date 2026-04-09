@@ -288,9 +288,11 @@ export const logout = catchAsync(
     await redis.del(`session:${sessionId}`);
 
     res.clearCookie('sessionId', {
-      httpOnly: isProd ? true : false,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      httpOnly: isProd,
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax',
+      path: '/',
+      domain: isProd ? '.domiquefusion.store' : undefined,
     });
 
     res.status(200).json({ status: 'success', message: 'Logged out' });
