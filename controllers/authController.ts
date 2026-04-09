@@ -303,10 +303,15 @@ export const protect = catchAsync(async (req, res, next) => {
     req.headers.authorization &&
     req.headers.authorization.startsWith('Bearer')
   ) {
-    sessionId = req.headers.authorization.split(' ')[1];
+    const token = req.headers.authorization.split(' ')[1];
+    // Guard against literal string 'undefined'/'null' sent by frontend
+    if (token && token !== 'undefined' && token !== 'null') {
+      sessionId = token;
+    }
   } else {
-    sessionId = req.cookies.sessionId;
+    sessionId = req.cookies.sessionId || '';
   }
+
   if (!sessionId) {
     return next(
       new AppError(
@@ -393,9 +398,13 @@ export const isLoggedIn = async (
     req.headers.authorization &&
     req.headers.authorization.startsWith('Bearer')
   ) {
-    sessionId = req.headers.authorization.split(' ')[1];
+    const token = req.headers.authorization.split(' ')[1];
+    // Guard against literal string 'undefined'/'null' sent by frontend
+    if (token && token !== 'undefined' && token !== 'null') {
+      sessionId = token;
+    }
   } else {
-    sessionId = req.cookies.sessionId;
+    sessionId = req.cookies.sessionId || '';
   }
 
   if (sessionId) {
