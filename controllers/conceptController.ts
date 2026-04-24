@@ -190,11 +190,15 @@ export const getAllConcepts = getAll(ConceptRestaurantModel, {
   cacheKey: 'concepts:all',
   cacheTTL: 3600,
 
-  async postProcess(docs) {
-    return docs.map(doc => {
-      const { profit, totalProfit, ...rest } = doc.toObject();
-      return rest;
-    });
+  async postProcess(docs, req) {
+    if (req.headers['x-user-role'] !== 'admin') {
+      return docs.map(doc => {
+        const obj = typeof doc.toObject === 'function' ? doc.toObject() : doc;
+        const { profit, totalProfit, ...rest } = obj;
+        return rest;
+      });
+    }
+    return docs;
   },
 });
 export const getConcept = getOne(ConceptRestaurantModel, { path: 'reviews' });

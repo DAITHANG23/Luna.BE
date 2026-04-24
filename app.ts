@@ -89,7 +89,7 @@ const rateLimitHandler: Options['handler'] = (req, res, _next) => {
 
 const limiter = rateLimit({
   windowMs: 1 * 60 * 1000,
-  max: 50,
+  max: 20,
   message: {
     status: 'fail',
     error: {

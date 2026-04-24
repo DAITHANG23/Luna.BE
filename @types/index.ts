@@ -105,6 +105,7 @@ export interface IConcept extends Document {
   totalProfit: number;
   images: Array<string>;
   imageCover: string;
+  logoUrl: string;
   timeSlot: TimeSlotType;
   dishes: Array<Dish>;
   type: string;
