@@ -168,7 +168,7 @@ export const getAll = <T extends Document>(
   options?: {
     filterBuilder?: (req: Request) => Record<string, any>;
     preQuery?: (query: any, req: Request) => any;
-    postProcess?: (docs: T[], req: Request) => any;
+    postProcess?: (docs: T[] | any[], req: Request) => any;
     cacheKey?: string;
     cacheTTL?: number;
   },
@@ -177,10 +177,14 @@ export const getAll = <T extends Document>(
     if (options?.cacheKey && Object.keys(req.query).length === 0) {
       const cached = await redis.get(options.cacheKey);
       if (cached) {
+        let docs = JSON.parse(cached);
+        if (options?.postProcess) {
+          docs = await options.postProcess(docs, req);
+        }
         return res.status(200).json({
           status: 'success',
-          results: JSON.parse(cached).length,
-          data: { data: JSON.parse(cached) },
+          results: docs.length,
+          data: { data: docs },
         });
       }
     }
@@ -200,10 +204,6 @@ export const getAll = <T extends Document>(
 
     let docs = await features.query;
 
-    if (options?.postProcess) {
-      docs = await options.postProcess(docs, req);
-    }
-
     if (options?.cacheKey && Object.keys(req.query).length === 0) {
       await redis.set(
         options.cacheKey,
@@ -211,6 +211,10 @@ export const getAll = <T extends Document>(
         'EX',
         options.cacheTTL || 3600,
       );
+    }
+
+    if (options?.postProcess) {
+      docs = await options.postProcess(docs, req);
     }
 
     res.status(200).json({
