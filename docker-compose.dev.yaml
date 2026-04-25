@@ -6,7 +6,6 @@ services:
     restart: unless-stopped
     ports:
       - '8002:8001'
-      - '5555:5555'
 
     volumes:
       - ./:/usr/src/app

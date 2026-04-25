@@ -35,6 +35,10 @@ const conceptSchema = new mongoose.Schema<IConcept>(
       required: [true, 'Restaurant must be have imageCover.'],
       default: '',
     },
+    logoUrl: {
+      type: String,
+      default: '',
+    },
     timeSlot: [
       {
         startTime: String,
